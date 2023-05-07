@@ -5,6 +5,9 @@ use tokio::sync::OnceCell;
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct Config {
+    // Database options
+    pub(crate) database_path: String,
+
     // HN options
     pub(crate) user_id: String,
     pub(crate) poll_interval_in_seconds: u8,

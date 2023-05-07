@@ -1,4 +1,5 @@
 {
     "userId": "whoishiring",
-    "pollIntervalInSeconds": 1
+    "pollIntervalInSeconds": 1,
+    "databasePath": ":memory:"
 }

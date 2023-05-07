@@ -7,10 +7,19 @@ use poll::Poll;
 mod ui;
 use ui::UI;
 
+mod database;
+use database::Database;
+
+mod schema;
+use schema::Schema;
+
 #[tokio::main]
 async fn main() {
     Config::load();
     println!("Running with config {:?}", Config::global());
+
+    let db = Database::new().await;
+    Schema::apply(&db).await;
 
     tokio::join!(Poll::spawn(), UI::spawn());
 }
