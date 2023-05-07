@@ -16,6 +16,8 @@ use schema::Schema;
 mod job;
 mod post;
 
+mod hn_client;
+
 #[tokio::main]
 async fn main() {
     Config::load();
@@ -23,6 +25,9 @@ async fn main() {
 
     let db = Database::new().await;
     Schema::apply(&db).await;
+
+    let post = hn_client::HnClient::get_latest_post().await;
+    println!("Latest post: {:?}", post);
 
     tokio::join!(Poll::spawn(), UI::spawn());
 }
