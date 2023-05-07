@@ -1,7 +1,7 @@
 use std::time::Duration;
 use tokio::time::{interval, Interval};
 
-use crate::{config::Config, state::AppState};
+use crate::{config::Config, hn_client::HnClient, state::AppState};
 
 pub(crate) struct Poll;
 
@@ -16,14 +16,28 @@ impl Poll {
         tokio::task::spawn(async move {
             loop {
                 interval.tick().await;
-                Self::tick().await;
+                Self::tick(state.clone()).await;
             }
         })
         .await
         .unwrap();
     }
 
-    async fn tick() {
-        println!("tick");
+    async fn tick(state: AppState) {
+        let post = HnClient::get_latest_post().await;
+        state.database.create_post_if_missing(&post).await;
+        println!("Latest post: {:?}", post);
+
+        let max_job_id = state.database.max_job_id().await;
+        println!("Max job id: {:?}", max_job_id);
+
+        let jobs = HnClient::get_jobs_under(&post, max_job_id).await;
+        let mut created = 0;
+        for job in jobs {
+            if state.database.create_job(&job).await {
+                created += 1;
+            }
+        }
+        println!("Sync completed, created {} jobs", created);
     }
 }

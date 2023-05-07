@@ -28,8 +28,9 @@ impl UI {
 
     async fn get_jobs(State(state): State<AppState>) -> Html<String> {
         let db = &state.database;
-        let post = db.last_post().await;
-        Html(format!("{:?}", post))
+        let post = db.last_post().await.unwrap();
+        let jobs = db.list_jobs(post.hn_id).await;
+        Html(format!("{:?}\n{:?}", post, jobs))
     }
 
     async fn mark_job_as_read(

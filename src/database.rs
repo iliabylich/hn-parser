@@ -2,7 +2,7 @@ use sqlx::sqlite::SqlitePool;
 
 use crate::{config::Config, job::Job, post::Post};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct Database {
     pub(crate) pool: SqlitePool,
 }
@@ -50,8 +50,8 @@ impl Database {
             .expect("Failed to fetch last post")
     }
 
-    pub(crate) async fn create_job(&self, job: &Job) {
-        sqlx::query(
+    pub(crate) async fn create_job(&self, job: &Job) -> bool {
+        let rows_affected = sqlx::query(
             r#"
                 INSERT OR IGNORE INTO jobs (hn_id, text, by, post_hn_id)
                 VALUES (?, ?, ?, ?)
@@ -63,7 +63,18 @@ impl Database {
         .bind(job.post_hn_id)
         .execute(&self.pool)
         .await
-        .expect("Failed to create job");
+        .expect("Failed to create job")
+        .rows_affected();
+
+        rows_affected == 1
+    }
+
+    pub(crate) async fn max_job_id(&self) -> u64 {
+        let max_id: i64 = sqlx::query_scalar(r#"SELECT MAX(hn_id) FROM jobs"#)
+            .fetch_one(&self.pool)
+            .await
+            .unwrap_or_default();
+        max_id as u64
     }
 
     pub(crate) async fn list_jobs(&self, post_hn_id: i64) -> Vec<Job> {

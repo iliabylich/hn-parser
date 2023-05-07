@@ -1,4 +1,4 @@
-use crate::{config::Config, post::Post};
+use crate::{config::Config, job::Job, post::Post};
 
 pub(crate) struct HnClient;
 
@@ -18,10 +18,10 @@ fn user_url() -> String {
 #[derive(serde::Deserialize, Debug)]
 struct Item {
     id: u64,
-    by: String,
-    text: String,
+    by: Option<String>,
+    text: Option<String>,
     title: Option<String>,
-    kids: Vec<u64>,
+    kids: Option<Vec<u64>>,
 }
 
 fn item_url(hn_id: u64) -> String {
@@ -64,5 +64,28 @@ impl HnClient {
             }
         }
         panic!("Failed to get latest post")
+    }
+
+    pub(crate) async fn get_jobs_under(post: &Post, max_hn_id: u64) -> Vec<Job> {
+        let post = Self::get_item(post.hn_id as u64).await;
+
+        let mut comment_ids = post.kids.unwrap_or_default();
+        comment_ids.sort();
+        comment_ids.retain(|e| *e > max_hn_id);
+        comment_ids.truncate(5);
+
+        println!("Checking comments with ids {:?}", comment_ids);
+
+        let mut comments = Vec::new();
+        for hn_id in comment_ids {
+            let comment = Self::get_item(hn_id).await;
+            comments.push(Job {
+                hn_id: comment.id as i64,
+                text: comment.text.unwrap_or_default(),
+                by: comment.by.unwrap_or_default(),
+                post_hn_id: post.id as i64,
+            });
+        }
+        comments
     }
 }

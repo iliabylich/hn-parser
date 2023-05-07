@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::Database;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct AppState {
     pub(crate) database: Database,
 }

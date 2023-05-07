@@ -31,8 +31,5 @@ async fn main() {
 
     let state = AppState::new(db);
 
-    let post = hn_client::HnClient::get_latest_post().await;
-    println!("Latest post: {:?}", post);
-
     tokio::join!(Poll::spawn(state.clone()), UI::spawn(state.clone()));
 }
