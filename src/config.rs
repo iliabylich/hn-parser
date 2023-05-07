@@ -3,10 +3,11 @@ use serde_json;
 use tokio::sync::OnceCell;
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct Config {
     // HN options
-    pub(crate) userId: String,
-    pub(crate) pollIntervalInSeconds: u8,
+    pub(crate) user_id: String,
+    pub(crate) poll_interval_in_seconds: u8,
 }
 
 static CONFIG: OnceCell<Config> = OnceCell::const_new();
