@@ -13,6 +13,9 @@ use database::Database;
 mod schema;
 use schema::Schema;
 
+mod state;
+use state::AppState;
+
 mod job;
 mod post;
 
@@ -26,8 +29,10 @@ async fn main() {
     let db = Database::new().await;
     Schema::apply(&db).await;
 
+    let state = AppState::new(db);
+
     let post = hn_client::HnClient::get_latest_post().await;
     println!("Latest post: {:?}", post);
 
-    tokio::join!(Poll::spawn(), UI::spawn());
+    tokio::join!(Poll::spawn(state.clone()), UI::spawn(state.clone()));
 }

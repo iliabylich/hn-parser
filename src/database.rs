@@ -2,6 +2,7 @@ use sqlx::sqlite::SqlitePool;
 
 use crate::{config::Config, job::Job, post::Post};
 
+#[derive(Clone)]
 pub(crate) struct Database {
     pub(crate) pool: SqlitePool,
 }

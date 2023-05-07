@@ -1,7 +1,7 @@
 use std::time::Duration;
 use tokio::time::{interval, Interval};
 
-use crate::config::Config;
+use crate::{config::Config, state::AppState};
 
 pub(crate) struct Poll;
 
@@ -11,7 +11,7 @@ fn interval_from_config() -> Interval {
 }
 
 impl Poll {
-    pub(crate) async fn spawn() {
+    pub(crate) async fn spawn(state: AppState) {
         let mut interval = interval_from_config();
         tokio::task::spawn(async move {
             loop {
