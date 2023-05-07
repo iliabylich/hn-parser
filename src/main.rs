@@ -1,4 +1,8 @@
+mod config;
+use config::Config;
+
 #[tokio::main]
 async fn main() {
-    println!("Hello, world!");
+    Config::load();
+    println!("Running with config {:?}", Config::global());
 }
