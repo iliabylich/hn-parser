@@ -13,6 +13,9 @@ use database::Database;
 mod schema;
 use schema::Schema;
 
+mod job;
+mod post;
+
 #[tokio::main]
 async fn main() {
     Config::load();

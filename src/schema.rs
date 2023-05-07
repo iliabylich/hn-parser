@@ -4,18 +4,17 @@ pub(crate) struct Schema;
 
 const CREATE_POSTS_TABLE_SQL: &str = r#"
     CREATE TABLE IF NOT EXISTS posts (
-        id INTEGER PRIMARY KEY,
-        year INTEGER NOT NULL,
-        month INTEGER NOT NULL,
-        hn_id INTEGER NOT NULL
+        hn_id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL
     )
 "#;
 
 const CREATE_JOBS_TABLE_SQL: &str = r#"
     CREATE TABLE IF NOT EXISTS jobs (
-        id INTEGER PRIMARY KEY,
-        hn_id INTEGER NOT NULL,
-        text TEXT NOT NULL
+        hn_id INTEGER PRIMARY KEY,
+        text TEXT NOT NULL,
+        by TEXT NOT NULL,
+        post_hn_id INTEGER NOT NULL
     )
 "#;
 

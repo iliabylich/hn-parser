@@ -1,6 +1,6 @@
 use sqlx::sqlite::SqlitePool;
 
-use crate::config::Config;
+use crate::{config::Config, job::Job, post::Post};
 
 pub(crate) struct Database {
     pub(crate) pool: SqlitePool,
@@ -19,5 +19,63 @@ impl Database {
         println!("Connected to sqlite");
 
         Self { pool }
+    }
+
+    pub(crate) async fn create_post_if_missing(&self, post: &Post) {
+        sqlx::query(
+            r#"
+                INSERT OR IGNORE INTO posts (hn_id, name)
+                VALUES (?, ?)
+            "#,
+        )
+        .bind(post.hn_id)
+        .bind(&post.name)
+        .execute(&self.pool)
+        .await
+        .expect("Failed to create post");
+    }
+
+    pub(crate) async fn all_posts(&self) -> Vec<Post> {
+        sqlx::query_as(r#"SELECT hn_id, name FROM posts"#)
+            .fetch_all(&self.pool)
+            .await
+            .expect("Failed to fetch posts")
+    }
+
+    pub(crate) async fn last_post(&self) -> Option<Post> {
+        sqlx::query_as(r#"SELECT hn_id, name FROM posts ORDER BY hn_id DESC LIMIT 1"#)
+            .fetch_optional(&self.pool)
+            .await
+            .expect("Failed to fetch last post")
+    }
+
+    pub(crate) async fn create_job(&self, job: &Job) {
+        sqlx::query(
+            r#"
+                INSERT OR IGNORE INTO jobs (hn_id, text, by, post_hn_id)
+                VALUES (?, ?, ?, ?)
+            "#,
+        )
+        .bind(job.hn_id)
+        .bind(&job.text)
+        .bind(&job.by)
+        .bind(job.post_hn_id)
+        .execute(&self.pool)
+        .await
+        .expect("Failed to create job");
+    }
+
+    pub(crate) async fn list_jobs(&self, post_hn_id: i64) -> Vec<Job> {
+        sqlx::query_as(
+            r#"
+                SELECT hn_id, text, by, post_hn_id
+                FROM jobs
+                WHERE post_hn_id = ?
+            "#,
+        )
+        .bind(post_hn_id)
+        .fetch_all(&self.pool)
+        .await
+        .expect("Failed to fetch jobs")
     }
 }
