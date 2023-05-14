@@ -1,3 +1,5 @@
+use futures::future::join_all;
+
 use crate::{config::Config, job::Job, post::Post};
 
 pub(crate) struct HnClient;
@@ -50,6 +52,18 @@ impl HnClient {
             .unwrap()
     }
 
+    async fn get_items(hn_ids: &[u64]) -> Vec<Item> {
+        join_all(hn_ids.iter().map(|hn_id| Self::get_item(*hn_id))).await
+    }
+
+    async fn get_items_in_chunk_of(hn_ids: &[u64], chunk_size: usize) -> Vec<Item> {
+        let mut items = Vec::new();
+        for chunk in hn_ids.chunks(chunk_size) {
+            items.extend(Self::get_items(chunk).await);
+        }
+        items
+    }
+
     pub(crate) async fn get_latest_post() -> Post {
         let user = Self::get_user().await;
         for hn_id in &user.submitted {
@@ -72,20 +86,19 @@ impl HnClient {
         let mut comment_ids = post.kids.unwrap_or_default();
         comment_ids.sort();
         comment_ids.retain(|e| *e > max_hn_id);
-        comment_ids.truncate(5);
+        // comment_ids.truncate(5);
 
         println!("Checking comments with ids {:?}", comment_ids);
 
-        let mut comments = Vec::new();
-        for hn_id in comment_ids {
-            let comment = Self::get_item(hn_id).await;
-            comments.push(Job {
+        Self::get_items_in_chunk_of(&comment_ids, 20)
+            .await
+            .into_iter()
+            .map(|comment| Job {
                 hn_id: comment.id as i64,
                 text: comment.text.unwrap_or_default(),
                 by: comment.by.unwrap_or_default(),
                 post_hn_id: post.id as i64,
-            });
-        }
-        comments
+            })
+            .collect::<Vec<_>>()
     }
 }
