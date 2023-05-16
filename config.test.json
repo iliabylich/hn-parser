@@ -1,5 +1,8 @@
 {
     "userId": "whoishiring",
-    "pollIntervalInSeconds": 1,
-    "databasePath": ":memory:"
+    "pollIntervalInSeconds": 0,
+    "databasePath": ":memory:",
+    "keywords": [
+        "rust"
+    ]
 }

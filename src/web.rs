@@ -6,15 +6,15 @@ use axum::{
 };
 use std::net::SocketAddr;
 
-use crate::state::AppState;
+use crate::{job::Job, state::AppState};
 
-pub(crate) struct UI;
+pub(crate) struct Web;
 
-impl UI {
+impl Web {
     pub(crate) async fn spawn(state: AppState) {
         let app = Router::new()
-            .route("/jobs", get(UI::get_jobs))
-            .route("/jobs/:id", post(UI::mark_job_as_read))
+            .route("/jobs", get(Self::get_jobs))
+            .route("/jobs/:id", post(Self::mark_job_as_read))
             .with_state(state);
 
         let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
@@ -28,9 +28,16 @@ impl UI {
 
     async fn get_jobs(State(state): State<AppState>) -> Html<String> {
         let db = &state.database;
-        let post = db.last_post().await.unwrap();
-        let jobs = db.list_jobs(post.hn_id).await;
-        Html(format!("{:?}\n{:?}", post, jobs))
+        let post = db.last_post().await.unwrap_or_default();
+        let mut jobs = db.list_jobs(post.hn_id).await;
+        if jobs.is_empty() {
+            jobs = vec![Job::default(); 10];
+        }
+        for job in &mut jobs {
+            job.highlight_keywords(Self::highlight_one_keyword);
+        }
+        let html = state.views.index(&post, &jobs);
+        Html(html)
     }
 
     async fn mark_job_as_read(
@@ -39,5 +46,12 @@ impl UI {
     ) -> Redirect {
         println!("marking job as read {}", post_id);
         Redirect::to("/jobs")
+    }
+
+    fn highlight_one_keyword(keyword: &str) -> String {
+        format!(
+            "<span class=\"highlight-container\"><span class=\"highlight\">{}</span></span>",
+            keyword
+        )
     }
 }

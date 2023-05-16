@@ -53,14 +53,15 @@ impl Database {
     pub(crate) async fn create_job(&self, job: &Job) -> bool {
         let rows_affected = sqlx::query(
             r#"
-                INSERT OR IGNORE INTO jobs (hn_id, text, by, post_hn_id)
-                VALUES (?, ?, ?, ?)
+                INSERT OR IGNORE INTO jobs (hn_id, text, by, post_hn_id, time)
+                VALUES (?, ?, ?, ?, ?)
             "#,
         )
         .bind(job.hn_id)
         .bind(&job.text)
         .bind(&job.by)
         .bind(job.post_hn_id)
+        .bind(job.time)
         .execute(&self.pool)
         .await
         .expect("Failed to create job")
@@ -77,10 +78,22 @@ impl Database {
         max_id as u64
     }
 
+    pub(crate) async fn all_jobs(&self) -> Vec<Job> {
+        sqlx::query_as(
+            r#"
+                SELECT hn_id, text, by, post_hn_id, time
+                FROM jobs
+            "#,
+        )
+        .fetch_all(&self.pool)
+        .await
+        .expect("Failed to fetch jobs")
+    }
+
     pub(crate) async fn list_jobs(&self, post_hn_id: i64) -> Vec<Job> {
         sqlx::query_as(
             r#"
-                SELECT hn_id, text, by, post_hn_id
+                SELECT hn_id, text, by, post_hn_id, time
                 FROM jobs
                 WHERE post_hn_id = ?
             "#,

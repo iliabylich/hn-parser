@@ -24,6 +24,7 @@ struct Item {
     text: Option<String>,
     title: Option<String>,
     kids: Option<Vec<u64>>,
+    time: i64,
 }
 
 fn item_url(hn_id: u64) -> String {
@@ -86,7 +87,7 @@ impl HnClient {
         let mut comment_ids = post.kids.unwrap_or_default();
         comment_ids.sort();
         comment_ids.retain(|e| *e > max_hn_id);
-        // comment_ids.truncate(5);
+        comment_ids.truncate(5);
 
         println!("Checking comments with ids {:?}", comment_ids);
 
@@ -98,6 +99,7 @@ impl HnClient {
                 text: comment.text.unwrap_or_default(),
                 by: comment.by.unwrap_or_default(),
                 post_hn_id: post.id as i64,
+                time: post.time,
             })
             .collect::<Vec<_>>()
     }

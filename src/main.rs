@@ -4,8 +4,8 @@ use config::Config;
 mod poll;
 use poll::Poll;
 
-mod ui;
-use ui::UI;
+mod web;
+use web::Web;
 
 mod database;
 use database::Database;
@@ -15,6 +15,9 @@ use schema::Schema;
 
 mod state;
 use state::AppState;
+
+mod views;
+use views::Views;
 
 mod job;
 mod post;
@@ -29,7 +32,9 @@ async fn main() {
     let db = Database::new().await;
     Schema::apply(&db).await;
 
-    let state = AppState::new(db);
+    let views = Views::new();
 
-    tokio::join!(Poll::spawn(state.clone()), UI::spawn(state.clone()));
+    let state = AppState::new(db, views);
+
+    tokio::join!(Poll::spawn(state.clone()), Web::spawn(state.clone()));
 }

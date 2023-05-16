@@ -5,14 +5,21 @@ use crate::{config::Config, hn_client::HnClient, state::AppState};
 
 pub(crate) struct Poll;
 
-fn interval_from_config() -> Interval {
+fn interval_from_config() -> Option<Interval> {
     let config = Config::global();
-    interval(Duration::from_secs(config.poll_interval_in_seconds.into()))
+    if config.poll_interval_in_seconds == 0 {
+        println!("Polling is disabled");
+        return None;
+    }
+    Some(interval(Duration::from_secs(
+        config.poll_interval_in_seconds.into(),
+    )))
 }
 
 impl Poll {
-    pub(crate) async fn spawn(state: AppState) {
-        let mut interval = interval_from_config();
+    pub(crate) async fn spawn(state: AppState) -> Option<()> {
+        let mut interval = interval_from_config()?;
+
         tokio::task::spawn(async move {
             loop {
                 interval.tick().await;
@@ -21,6 +28,8 @@ impl Poll {
         })
         .await
         .unwrap();
+
+        Some(())
     }
 
     async fn tick(state: AppState) {
@@ -34,7 +43,7 @@ impl Poll {
         let jobs = HnClient::get_jobs_under(&post, max_job_id).await;
         let mut created = 0;
         for job in jobs {
-            if state.database.create_job(&job).await {
+            if job.has_keywords() && state.database.create_job(&job).await {
                 created += 1;
             }
         }

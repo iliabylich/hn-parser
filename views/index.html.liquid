@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Rust HN jobs</title>
+    <style>
+        .highlight-container, .highlight {
+            position: relative;
+        }
+        .highlight-container {
+            display: inline-block;
+        }
+        .highlight-container:before {
+            content: " ";
+            display: block;
+            height: 90%;
+            width: 100%;
+            margin-left: 0px;
+            margin-right: -3px;
+            position: absolute;
+            background: #ffd500;
+            transform: rotate(2deg);
+            top: -1px;
+            left: -1px;
+            border-radius: 20% 25% 20% 24%;
+            padding: 10px 3px 3px 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="bg-white py-24 sm:py-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="mx-auto max-w-2xl lg:mx-0">
+      <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+        Current Rust job from HN....
+      </h2>
+      <p class="mt-2 text-lg leading-8 text-gray-600">
+        <a class="hover:underline" href="https://news.ycombinator.com/item?id={{ post['hn_id'] }}">
+            {{ post['name'] }} (go to thread on HN)
+        </a>
+      </p>
+    </div>
+    <ul role="list" class="divide-y divide-gray-100">
+        {% for job in jobs %}
+            <li class="flex justify-between gap-x-6 py-5">
+                <div class="flex gap-x-4">
+                    <div class="max-w-full mx-auto bg-white shadow-lg ring-1 ring-black/5 rounded-xl flex flex-col gap-6 dark:bg-slate-800 dark:highlight-white/5">
+                        <p class="pt-6 px-8 text-slate-900 font-medium text-sm sm:text-base dark:text-slate-200">
+                            <a href="#" class="hover:underline">
+                                by {{ job['by'] }} (go to item on HN)
+                            </a>
+
+                            {{ job['time'] }}
+                        </p>
+
+                        <p class="pb-6 px-8 mt-1 text-xs leading-5 text-gray-500">
+                            {{ job['text'] }}
+                        </p>
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+  </div>
+</div>
+
+</body>
+
+</html>
