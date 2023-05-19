@@ -8,7 +8,9 @@ pub(crate) struct Views {
 }
 
 fn template(content: &str) -> liquid::Template {
-    ParserBuilder::with_stdlib()
+    let mut builder = ParserBuilder::with_stdlib();
+    builder = crate::liquid::add_filters(builder);
+    builder
         .build()
         .unwrap()
         .parse(content)

@@ -99,7 +99,7 @@ impl HnClient {
                     text: comment.text.unwrap_or_default(),
                     by: comment.by.unwrap_or_default(),
                     post_hn_id: post.id as i64,
-                    time: post.time,
+                    time: comment.time,
                     interesting: false,
                 };
                 job.interesting = job.has_keywords();
