@@ -2,6 +2,8 @@ use serde::Deserialize;
 use serde_json;
 use tokio::sync::OnceCell;
 
+use crate::keyword::Keyword;
+
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct Config {
@@ -15,7 +17,7 @@ pub(crate) struct Config {
     // Parser options
     pub(crate) keywords: Vec<String>,
     #[serde(skip_deserializing)]
-    pub(crate) keyword_regexes: Vec<regex::Regex>,
+    pub(crate) keyword_regexes: Vec<Keyword>,
 }
 
 static CONFIG: OnceCell<Config> = OnceCell::const_new();
@@ -35,12 +37,7 @@ impl Config {
 
     fn build_keyword_regexes(&mut self) {
         for keyword in &self.keywords {
-            let regex = format!("\\b{}\\b", keyword);
-            let regex = regex::RegexBuilder::new(&regex)
-                .case_insensitive(true)
-                .build()
-                .unwrap();
-            self.keyword_regexes.push(regex)
+            self.keyword_regexes.push(Keyword::from(keyword))
         }
     }
 

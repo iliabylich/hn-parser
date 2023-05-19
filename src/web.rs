@@ -50,7 +50,13 @@ impl Web {
 
     fn highlight_one_keyword(keyword: &str) -> String {
         format!(
-            "<span class=\"highlight-container\"><span class=\"highlight\">{}</span></span>",
+            r#"
+                <span class="highlight-container">
+                    <span class="highlight">
+                        {}
+                    </span>
+                </span>
+            "#,
             keyword
         )
     }

@@ -3,6 +3,7 @@ mod database;
 mod fixture;
 mod hn_client;
 mod job;
+mod keyword;
 mod poll;
 mod post;
 mod state;

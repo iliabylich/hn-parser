@@ -36,17 +36,16 @@ impl Job {
         Config::global()
             .keyword_regexes
             .iter()
-            .any(|regex| regex.is_match(&self.text))
+            .any(|keyword| keyword.is_match(&self.text))
     }
 
     pub(crate) fn highlight_keywords<F>(&mut self, f: F)
     where
         F: Fn(&str) -> String,
     {
-        Config::global().keyword_regexes.iter().for_each(|regex| {
-            self.text = regex
-                .replace_all(&self.text, |captures: &regex::Captures| f(&captures[0]))
-                .to_string()
-        });
+        Config::global()
+            .keyword_regexes
+            .iter()
+            .for_each(|keyword| self.text = keyword.replace_all(&self.text, |capture| f(capture)));
     }
 }
