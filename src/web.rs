@@ -6,7 +6,7 @@ use axum::{
 };
 use std::net::SocketAddr;
 
-use crate::{job::Job, state::AppState};
+use crate::{fixture::Fixture, job::Job, post::Post, state::AppState};
 
 pub(crate) struct Web;
 
@@ -28,15 +28,14 @@ impl Web {
 
     async fn get_jobs(State(state): State<AppState>) -> Html<String> {
         let db = &state.database;
-        let post = db.last_post().await.unwrap_or_default();
+        let post = db.last_post().await.unwrap_or_else(Post::fixture);
         let mut jobs = db.list_jobs(post.hn_id).await;
         if jobs.is_empty() {
-            jobs = vec![Job::default(); 10];
+            jobs = vec![Job::fixture(); 10];
         }
         for job in &mut jobs {
             job.highlight_keywords(Self::highlight_one_keyword);
         }
-        jobs.push(Job::default());
         let html = state.views.index(&post, &jobs);
         Html(html)
     }

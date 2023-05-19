@@ -1,8 +1,0 @@
-{
-    "userId": "whoishiring",
-    "pollIntervalInSeconds": 0,
-    "databasePath": ":memory:",
-    "keywords": [
-        "rust"
-    ]
-}

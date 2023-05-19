@@ -87,7 +87,6 @@ impl HnClient {
         let mut comment_ids = post.kids.unwrap_or_default();
         comment_ids.sort();
         comment_ids.retain(|e| *e > max_hn_id);
-        comment_ids.truncate(5);
 
         println!("Checking comments with ids {:?}", comment_ids);
 

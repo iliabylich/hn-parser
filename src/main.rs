@@ -24,6 +24,8 @@ mod post;
 
 mod hn_client;
 
+mod fixture;
+
 #[tokio::main]
 async fn main() {
     Config::load();

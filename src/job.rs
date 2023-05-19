@@ -12,19 +12,6 @@ pub(crate) struct Job {
     pub(crate) interesting: bool,
 }
 
-impl Default for Job {
-    fn default() -> Self {
-        Self {
-            hn_id: Default::default(),
-            text: String::from("Lorem ipsum dolor sit amet, consectetur adipiscing Rust elit, sed RUST do eiusmod tempor incididunt ut labore et rust dolore magna aliqua.").repeat(15),
-            by: String::from("Username"),
-            post_hn_id: 12345,
-            time: 1298888434,
-            interesting: true,
-        }
-    }
-}
-
 impl Job {
     pub(crate) fn has_keywords(&self) -> bool {
         Config::global()

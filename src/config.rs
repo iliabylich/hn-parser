@@ -21,20 +21,27 @@ pub(crate) struct Config {
 static CONFIG: OnceCell<Config> = OnceCell::const_new();
 
 impl Config {
-    pub(crate) fn load() {
+    fn read() -> String {
         let path = std::env::var("HNPARSER_CONFIG_PATH")
             .expect("No HNPARSER_CONFIG_PATH environment variable set");
-        let config = std::fs::read_to_string(&path).expect("failed to read config file");
-        let mut config: Config = serde_json::from_str(&config).unwrap();
-        for keyword in &config.keywords {
+        std::fs::read_to_string(&path).expect("failed to read config file")
+    }
+
+    pub(crate) fn load() {
+        let mut config: Config = serde_json::from_str(&Config::read()).unwrap();
+        config.build_keyword_regexes();
+        CONFIG.set(config).unwrap();
+    }
+
+    fn build_keyword_regexes(&mut self) {
+        for keyword in &self.keywords {
             let regex = format!("\\b{}\\b", keyword);
             let regex = regex::RegexBuilder::new(&regex)
                 .case_insensitive(true)
                 .build()
                 .unwrap();
-            config.keyword_regexes.push(regex)
+            self.keyword_regexes.push(regex)
         }
-        CONFIG.set(config).unwrap();
     }
 
     pub(crate) fn global() -> &'static Config {
