@@ -1,9 +1,4 @@
-use axum::{
-    extract::{Path, State},
-    response::{Html, Redirect},
-    routing::{get, post},
-    Router, Server,
-};
+use axum::{extract::State, response::Html, routing::get, Router, Server};
 use std::net::SocketAddr;
 
 use crate::{fixture::Fixture, job::Job, post::Post, state::AppState};
@@ -14,7 +9,6 @@ impl Web {
     pub(crate) async fn spawn(state: AppState) {
         let app = Router::new()
             .route("/jobs", get(Self::get_jobs))
-            .route("/jobs/:id", post(Self::mark_job_as_read))
             .with_state(state);
 
         let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
@@ -38,14 +32,6 @@ impl Web {
         }
         let html = state.views.index(&post, &jobs);
         Html(html)
-    }
-
-    async fn mark_job_as_read(
-        State(_state): State<AppState>,
-        Path(post_id): Path<u64>,
-    ) -> Redirect {
-        println!("marking job as read {}", post_id);
-        Redirect::to("/jobs")
     }
 
     fn highlight_one_keyword(keyword: &str) -> String {
