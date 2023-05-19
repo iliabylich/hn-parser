@@ -1,38 +1,27 @@
 mod config;
-use config::Config;
-
-mod poll;
-use poll::Poll;
-
-mod web;
-use web::Web;
-
 mod database;
-use database::Database;
-
-mod schema;
-use schema::Schema;
-
-mod state;
-use state::AppState;
-
-mod views;
-use views::Views;
-
-mod job;
-mod post;
-
-mod hn_client;
-
 mod fixture;
+mod hn_client;
+mod job;
+mod poll;
+mod post;
+mod state;
+mod views;
+mod web;
 
 #[tokio::main]
 async fn main() {
+    use crate::{
+        config::Config, database::Database, job::Job, poll::Poll, post::Post, state::AppState,
+        views::Views, web::Web,
+    };
+
     Config::load();
     println!("Running with config {:?}", Config::global());
 
     let db = Database::new().await;
-    Schema::apply(&db).await;
+    Post::create_table(&db).await;
+    Job::create_table(&db).await;
 
     let views = Views::new();
 

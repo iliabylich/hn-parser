@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{views::Views, Database};
+use crate::{database::Database, views::Views};
 
 #[derive(Clone)]
 pub(crate) struct AppState {
