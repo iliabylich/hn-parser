@@ -36,6 +36,7 @@ impl Web {
         for job in &mut jobs {
             job.highlight_keywords(Self::highlight_one_keyword);
         }
+        jobs.push(Job::default());
         let html = state.views.index(&post, &jobs);
         Html(html)
     }

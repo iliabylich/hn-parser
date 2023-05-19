@@ -27,7 +27,8 @@ impl Config {
         let config = std::fs::read_to_string(&path).expect("failed to read config file");
         let mut config: Config = serde_json::from_str(&config).unwrap();
         for keyword in &config.keywords {
-            let regex = regex::RegexBuilder::new(keyword)
+            let regex = format!("\\b{}\\b", keyword);
+            let regex = regex::RegexBuilder::new(&regex)
                 .case_insensitive(true)
                 .build()
                 .unwrap();

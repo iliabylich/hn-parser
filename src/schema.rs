@@ -15,7 +15,8 @@ const CREATE_JOBS_TABLE_SQL: &str = r#"
         text TEXT NOT NULL,
         by TEXT NOT NULL,
         post_hn_id INTEGER NOT NULL,
-        time INTEGER NOT NULL
+        time INTEGER NOT NULL,
+        interesting BOOLEAN NOT NULL
     )
 "#;
 

@@ -43,7 +43,7 @@ impl Poll {
         let jobs = HnClient::get_jobs_under(&post, max_job_id).await;
         let mut created = 0;
         for job in jobs {
-            if job.has_keywords() && state.database.create_job(&job).await {
+            if state.database.create_job(&job).await {
                 created += 1;
             }
         }

@@ -94,12 +94,17 @@ impl HnClient {
         Self::get_items_in_chunk_of(&comment_ids, 20)
             .await
             .into_iter()
-            .map(|comment| Job {
-                hn_id: comment.id as i64,
-                text: comment.text.unwrap_or_default(),
-                by: comment.by.unwrap_or_default(),
-                post_hn_id: post.id as i64,
-                time: post.time,
+            .map(|comment| {
+                let mut job = Job {
+                    hn_id: comment.id as i64,
+                    text: comment.text.unwrap_or_default(),
+                    by: comment.by.unwrap_or_default(),
+                    post_hn_id: post.id as i64,
+                    time: post.time,
+                    interesting: false,
+                };
+                job.interesting = job.has_keywords();
+                job
             })
             .collect::<Vec<_>>()
     }

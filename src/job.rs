@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::config::Config;
 
@@ -10,6 +9,7 @@ pub(crate) struct Job {
     pub(crate) by: String,
     pub(crate) post_hn_id: i64,
     pub(crate) time: i64,
+    pub(crate) interesting: bool,
 }
 
 impl Default for Job {
@@ -20,6 +20,7 @@ impl Default for Job {
             by: String::from("Username"),
             post_hn_id: 12345,
             time: 1298888434,
+            interesting: true,
         }
     }
 }
@@ -27,9 +28,9 @@ impl Default for Job {
 impl Job {
     pub(crate) fn has_keywords(&self) -> bool {
         Config::global()
-            .keywords
+            .keyword_regexes
             .iter()
-            .any(|keyword| self.text.to_lowercase().contains(&keyword.to_lowercase()))
+            .any(|regex| regex.is_match(&self.text))
     }
 
     pub(crate) fn highlight_keywords<F>(&mut self, f: F)

@@ -36,13 +36,6 @@ impl Database {
         .expect("Failed to create post");
     }
 
-    pub(crate) async fn all_posts(&self) -> Vec<Post> {
-        sqlx::query_as(r#"SELECT hn_id, name FROM posts"#)
-            .fetch_all(&self.pool)
-            .await
-            .expect("Failed to fetch posts")
-    }
-
     pub(crate) async fn last_post(&self) -> Option<Post> {
         sqlx::query_as(r#"SELECT hn_id, name FROM posts ORDER BY hn_id DESC LIMIT 1"#)
             .fetch_optional(&self.pool)
@@ -53,8 +46,8 @@ impl Database {
     pub(crate) async fn create_job(&self, job: &Job) -> bool {
         let rows_affected = sqlx::query(
             r#"
-                INSERT OR IGNORE INTO jobs (hn_id, text, by, post_hn_id, time)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT OR IGNORE INTO jobs (hn_id, text, by, post_hn_id, time, interesting)
+                VALUES (?, ?, ?, ?, ?, ?)
             "#,
         )
         .bind(job.hn_id)
@@ -62,6 +55,7 @@ impl Database {
         .bind(&job.by)
         .bind(job.post_hn_id)
         .bind(job.time)
+        .bind(job.interesting)
         .execute(&self.pool)
         .await
         .expect("Failed to create job")
@@ -78,24 +72,12 @@ impl Database {
         max_id as u64
     }
 
-    pub(crate) async fn all_jobs(&self) -> Vec<Job> {
-        sqlx::query_as(
-            r#"
-                SELECT hn_id, text, by, post_hn_id, time
-                FROM jobs
-            "#,
-        )
-        .fetch_all(&self.pool)
-        .await
-        .expect("Failed to fetch jobs")
-    }
-
     pub(crate) async fn list_jobs(&self, post_hn_id: i64) -> Vec<Job> {
         sqlx::query_as(
             r#"
-                SELECT hn_id, text, by, post_hn_id, time
+                SELECT hn_id, text, by, post_hn_id, time, interesting
                 FROM jobs
-                WHERE post_hn_id = ?
+                WHERE post_hn_id = ? AND interesting = 1
             "#,
         )
         .bind(post_hn_id)

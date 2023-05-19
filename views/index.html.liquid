@@ -28,6 +28,12 @@
             border-radius: 20% 25% 20% 24%;
             padding: 10px 3px 3px 10px;
         }
+        .job-description a {
+            text-decoration-thickness: 2px;
+            text-decoration-color: #6366f1;
+            text-decoration-line: underline;
+            font-weight: 700;
+        }
     </style>
 </head>
 
@@ -51,16 +57,16 @@
                 <div class="flex gap-x-4">
                     <div class="max-w-full mx-auto bg-white shadow-lg ring-1 ring-black/5 rounded-xl flex flex-col gap-6 dark:bg-slate-800 dark:highlight-white/5">
                         <p class="pt-6 px-8 text-slate-900 font-medium text-sm sm:text-base dark:text-slate-200">
-                            <a href="#" class="hover:underline">
+                            <a href="https://news.ycombinator.com/item?id={{ job['hn_id'] }}" class="hover:underline">
                                 by {{ job['by'] }} (go to item on HN)
                             </a>
 
                             {{ job['time'] }}
                         </p>
 
-                        <p class="pb-6 px-8 mt-1 text-xs leading-5 text-gray-500">
+                        <span class="pb-6 px-8 mt-1 text-xs leading-5 text-gray-500 job-description">
                             {{ job['text'] }}
-                        </p>
+                        </span>
                     </div>
                 </div>
             </li>
