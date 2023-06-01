@@ -5,6 +5,7 @@ mod hn_client;
 mod job;
 mod keyword;
 mod liquid;
+mod mailer;
 mod poll;
 mod post;
 mod state;
@@ -15,8 +16,8 @@ mod web;
 #[tokio::main]
 async fn main() {
     use crate::{
-        config::Config, database::Database, job::Job, poll::Poll, post::Post, state::AppState,
-        views::Views, web::Web,
+        config::Config, database::Database, job::Job, mailer::Mailer, poll::Poll, post::Post,
+        state::AppState, views::Views, web::Web,
     };
 
     Config::load();
@@ -30,5 +31,9 @@ async fn main() {
 
     let state = AppState::new(db, views);
 
-    tokio::join!(Poll::spawn(state.clone()), Web::spawn(state.clone()));
+    tokio::join!(
+        Poll::spawn(state.clone()),
+        Web::spawn(state.clone()),
+        Mailer::spawn(state.clone())
+    );
 }

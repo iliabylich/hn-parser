@@ -46,8 +46,8 @@ impl Database {
     pub(crate) async fn create_job(&self, job: &Job) -> bool {
         let rows_affected = sqlx::query(
             r#"
-                INSERT OR IGNORE INTO jobs (hn_id, text, by, post_hn_id, time, interesting)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT OR IGNORE INTO jobs (hn_id, text, by, post_hn_id, time, interesting, email_sent)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             "#,
         )
         .bind(job.hn_id)
@@ -56,6 +56,7 @@ impl Database {
         .bind(job.post_hn_id)
         .bind(job.time)
         .bind(job.interesting)
+        .bind(job.email_sent)
         .execute(&self.pool)
         .await
         .expect("Failed to create job")
@@ -75,7 +76,7 @@ impl Database {
     pub(crate) async fn list_jobs(&self, post_hn_id: i64) -> Vec<Job> {
         sqlx::query_as(
             r#"
-                SELECT hn_id, text, by, post_hn_id, time, interesting
+                SELECT hn_id, text, by, post_hn_id, time, interesting, email_sent
                 FROM jobs
                 WHERE post_hn_id = ? AND interesting = 1
             "#,
@@ -84,5 +85,25 @@ impl Database {
         .fetch_all(&self.pool)
         .await
         .expect("Failed to fetch jobs")
+    }
+
+    pub(crate) async fn new_jobs(&self) -> Vec<Job> {
+        let jobs = sqlx::query_as(
+            r#"
+                SELECT hn_id, text, by, post_hn_id, time, interesting, email_sent
+                FROM jobs
+                WHERE interesting = 1 AND email_sent = 0
+            "#,
+        )
+        .fetch_all(&self.pool)
+        .await
+        .expect("Failed to fetch new jobs");
+
+        sqlx::query("UPDATE jobs SET email_sent = 1")
+            .execute(&self.pool)
+            .await
+            .expect("Failed to update email_sent");
+
+        jobs
     }
 }

@@ -10,6 +10,7 @@ pub(crate) struct Job {
     pub(crate) post_hn_id: i64,
     pub(crate) time: i64,
     pub(crate) interesting: bool,
+    pub(crate) email_sent: bool,
 }
 
 const CREATE_JOBS_TABLE_SQL: &str = r#"
@@ -19,7 +20,8 @@ const CREATE_JOBS_TABLE_SQL: &str = r#"
         by TEXT NOT NULL,
         post_hn_id INTEGER NOT NULL,
         time INTEGER NOT NULL,
-        interesting BOOLEAN NOT NULL
+        interesting BOOLEAN NOT NULL,
+        email_sent BOOLEAN NOT NULL DEFAULT FALSE
     )
 "#;
 

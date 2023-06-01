@@ -26,6 +26,7 @@ impl Fixture for Job {
             post_hn_id: 12345,
             time: 1298888434,
             interesting: true,
+            email_sent: false,
         }
     }
 }

@@ -101,6 +101,7 @@ impl HnClient {
                     post_hn_id: post.id as i64,
                     time: comment.time,
                     interesting: false,
+                    email_sent: false,
                 };
                 job.interesting = job.has_keywords();
                 job

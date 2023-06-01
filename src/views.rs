@@ -43,4 +43,11 @@ impl Views {
         });
         self.render(TemplateId::Index, &globals)
     }
+
+    pub(crate) fn jobs_email(&self, jobs: &[Job]) -> String {
+        let globals = liquid::object!({
+            "jobs": jobs
+        });
+        self.render(TemplateId::Email, &globals)
+    }
 }

@@ -18,6 +18,10 @@ pub(crate) struct Config {
     pub(crate) keywords: Vec<String>,
     #[serde(skip_deserializing)]
     pub(crate) keyword_regexes: Vec<Keyword>,
+
+    // Gmail options
+    pub(crate) gmail_email: String,
+    pub(crate) gmail_password: String,
 }
 
 static CONFIG: OnceCell<Config> = OnceCell::const_new();
