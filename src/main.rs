@@ -8,6 +8,7 @@ mod liquid;
 mod poll;
 mod post;
 mod state;
+mod template;
 mod views;
 mod web;
 

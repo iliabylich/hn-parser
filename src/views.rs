@@ -1,48 +1,39 @@
-use crate::{job::Job, post::Post};
-
-use liquid::ParserBuilder;
+use crate::{
+    job::Job,
+    post::Post,
+    template::{Template, TemplateId},
+};
+use std::collections::HashMap;
 
 pub(crate) struct Views {
-    #[allow(dead_code)]
-    index_template: liquid::Template,
-}
-
-fn template(content: &str) -> liquid::Template {
-    let mut builder = ParserBuilder::with_stdlib();
-    builder = crate::liquid::add_filters(builder);
-    builder
-        .build()
-        .unwrap()
-        .parse(content)
-        .unwrap_or_else(|err| panic!("Failed to compile template:\n{}", err))
+    templates: HashMap<TemplateId, Template>,
 }
 
 static INDEX_TEMPLATE: &str = include_str!("../views/index.html.liquid");
+static EMAIL_TEMPLATE: &str = include_str!("../views/email.html.liquid");
 
 impl Views {
     pub(crate) fn new() -> Self {
-        Self {
-            index_template: template(INDEX_TEMPLATE),
-        }
+        let mut views = Self {
+            templates: HashMap::new(),
+        };
+        views.register_template(
+            TemplateId::Index,
+            Template::new("views/index.html.liquid", INDEX_TEMPLATE),
+        );
+        views.register_template(
+            TemplateId::Email,
+            Template::new("views/email.html.liquid", EMAIL_TEMPLATE),
+        );
+        views
     }
 
-    #[cfg(debug_assertions)]
-    fn with_index_template<F>(&self, f: F) -> String
-    where
-        F: FnOnce(&liquid::Template) -> String,
-    {
-        let template_src = std::fs::read_to_string("views/index.html.liquid")
-            .expect("Failed to read views/index.html.liquid");
-        let t = template(&template_src);
-        f(&t)
+    fn register_template(&mut self, template_id: TemplateId, template: Template) {
+        self.templates.insert(template_id, template);
     }
 
-    #[cfg(not(debug_assertions))]
-    fn with_index_template<F>(&self, f: F) -> String
-    where
-        F: FnOnce(&liquid::Template) -> String,
-    {
-        f(&self.index_template)
+    fn render(&self, template_id: TemplateId, globals: &liquid::Object) -> String {
+        self.templates.get(&template_id).unwrap().render(globals)
     }
 
     pub(crate) fn index(&self, last_post: &Post, jobs: &[Job]) -> String {
@@ -50,6 +41,6 @@ impl Views {
             "post": last_post,
             "jobs": jobs
         });
-        self.with_index_template(|template| template.render(&globals).unwrap())
+        self.render(TemplateId::Index, &globals)
     }
 }
