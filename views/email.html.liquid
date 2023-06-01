@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Rust HN jobs</title>
+  </head>
+
+  <body>
+
+    <div style="padding: 10px;">
+      <h2>Current Rust job from HN....</h2>
+
+      <div>
+        {% for job in jobs %}
+          <div style="border: 1px solid black; padding: 5px; margin: 10px 0;">
+            <a href="https://news.ycombinator.com/item?id={{ job['hn_id'] }}" style="border-bottom: 1px solid black;">
+              by {{ job['by'] }} (go to item on HN)
+            </a>
+
+            <div style="border-bottom: 1px solid black;">
+              {{ job['time'] | timeago }}
+            </div>
+
+            <span>{{ job['text'] }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </body>
+</html>

@@ -22,6 +22,9 @@ pub(crate) struct Config {
     // Gmail options
     pub(crate) gmail_email: String,
     pub(crate) gmail_password: String,
+
+    // Mailer options
+    pub(crate) send_email_once_every_seconds: u64,
 }
 
 static CONFIG: OnceCell<Config> = OnceCell::const_new();

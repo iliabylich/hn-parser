@@ -9,6 +9,7 @@ impl Web {
     pub(crate) async fn spawn(state: AppState) {
         let app = Router::new()
             .route("/jobs", get(Self::get_jobs))
+            .route("/preview", get(Self::preview))
             .with_state(state);
 
         let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
@@ -31,6 +32,12 @@ impl Web {
             job.highlight_keywords(Self::highlight_one_keyword);
         }
         let html = state.views.index(&post, &jobs);
+        Html(html)
+    }
+
+    async fn preview(State(state): State<AppState>) -> Html<String> {
+        let jobs = vec![Job::fixture(); 10];
+        let html = state.views.jobs_email(&jobs);
         Html(html)
     }
 

@@ -39,7 +39,7 @@ impl Gmail {
             .to("Ilya Bylich <ibylich@gmail.com>".parse().unwrap())
             .subject("Test message from HN parser")
             .header(ContentType::TEXT_PLAIN)
-            .body(String::from("This is a test message, ignore it."))
+            .body(String::from("HN parser is running."))
             .unwrap();
 
         self.send_message(message).await;

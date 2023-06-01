@@ -16,8 +16,15 @@ mod web;
 #[tokio::main]
 async fn main() {
     use crate::{
-        config::Config, database::Database, job::Job, mailer::Mailer, poll::Poll, post::Post,
-        state::AppState, views::Views, web::Web,
+        config::Config,
+        database::Database,
+        job::Job,
+        mailer::{Gmail, Mailer},
+        poll::Poll,
+        post::Post,
+        state::AppState,
+        views::Views,
+        web::Web,
     };
 
     Config::load();
@@ -29,7 +36,9 @@ async fn main() {
 
     let views = Views::new();
 
-    let state = AppState::new(db, views);
+    let gmail = Gmail::from_global_config();
+
+    let state = AppState::new(db, views, gmail);
 
     tokio::join!(
         Poll::spawn(state.clone()),
