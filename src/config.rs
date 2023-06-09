@@ -31,8 +31,13 @@ static CONFIG: OnceCell<Config> = OnceCell::const_new();
 
 impl Config {
     fn read() -> String {
-        let path = std::env::var("HNPARSER_CONFIG_PATH")
-            .expect("No HNPARSER_CONFIG_PATH environment variable set");
+        let path = if cfg!(debug_assertions) {
+            std::env::var("HNPARSER_CONFIG_PATH")
+                .expect("No HNPARSER_CONFIG_PATH environment variable set")
+        } else {
+            String::from("/etc/hnparser.conf")
+        };
+
         std::fs::read_to_string(&path).expect("failed to read config file")
     }
 
