@@ -1,0 +1,12 @@
+[Unit]
+AssertPathExists=/usr/bin/hnparser
+
+[Service]
+WorkingDirectory=~
+ExecStart=/usr/bin/hnparser
+Restart=always
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

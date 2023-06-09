@@ -22,8 +22,11 @@ jobs:
           toolchain: stable
           override: true
 
+      - name: install cargo-deb
+        run: cargo install cargo-deb
+
       - name: build
-        run: cargo build --release
+        run: cargo deb
 
       - name: release
         uses: ncipollo/release-action@v1
@@ -31,5 +34,5 @@ jobs:
           allowUpdates: true
           artifactErrorsFailBuild: true
           tag: latest
-          artifacts: target/release/hnparser
+          artifacts: target/release/hnparser,target/debian/hnparser_0.1.0_amd64.deb
           token: ${{ secrets.GITHUB_TOKEN }}

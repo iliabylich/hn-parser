@@ -35,7 +35,7 @@ impl Config {
             std::env::var("HNPARSER_CONFIG_PATH")
                 .expect("No HNPARSER_CONFIG_PATH environment variable set")
         } else {
-            String::from("/etc/hnparser.conf")
+            String::from("/etc/hnparser.json")
         };
 
         std::fs::read_to_string(&path).expect("failed to read config file")

@@ -1,0 +1,11 @@
+{
+    "userId": "whoishiring",
+    "pollIntervalInSeconds": 5,
+    "databasePath": ":memory:",
+    "keywords": [
+        "rust"
+    ],
+    "gmailEmail": "me@gmail.com",
+    "gmailPassword": "foo bar",
+    "sendEmailOnceEverySeconds": 10
+}
