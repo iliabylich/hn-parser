@@ -12,7 +12,7 @@ pub(crate) struct Config {
 
     // HN options
     pub(crate) user_id: String,
-    pub(crate) poll_interval_in_seconds: u8,
+    pub(crate) poll_interval_in_seconds: u64,
 
     // Parser options
     pub(crate) keywords: Vec<String>,
