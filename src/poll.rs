@@ -27,13 +27,13 @@ impl Poll {
             }
         })
         .await
-        .unwrap();
+        .expect("Failed to spawn poll task");
 
         Some(())
     }
 
-    async fn tick(state: AppState) {
-        let post = HnClient::get_latest_post().await;
+    async fn tick(state: AppState) -> Option<()> {
+        let post = HnClient::get_latest_post().await?;
         state.database.create_post_if_missing(&post).await;
         println!("Latest post: {:?}", post);
 
@@ -48,5 +48,7 @@ impl Poll {
             }
         }
         println!("Sync completed, created {} jobs", created);
+
+        Some(())
     }
 }

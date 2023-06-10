@@ -35,19 +35,19 @@ fn item_url(hn_id: u64) -> String {
 }
 
 impl HnClient {
-    async fn get_user() -> User {
+    async fn get_user() -> Option<User> {
         reqwest::get(user_url())
             .await
-            .unwrap()
+            .ok()?
             .json::<User>()
             .await
-            .unwrap()
+            .ok()
     }
 
     async fn get_item(hn_id: u64) -> Option<Item> {
         reqwest::get(item_url(hn_id))
             .await
-            .unwrap()
+            .ok()?
             .json::<Item>()
             .await
             .ok()
@@ -69,17 +69,17 @@ impl HnClient {
         items
     }
 
-    pub(crate) async fn get_latest_post() -> Post {
-        let user = Self::get_user().await;
+    pub(crate) async fn get_latest_post() -> Option<Post> {
+        let user = Self::get_user().await?;
         for hn_id in &user.submitted {
             let post = Self::get_item(*hn_id).await;
             if let Some(post) = post {
                 if let Some(title) = post.title {
                     if title.contains("Ask HN: Who is hiring?") {
-                        return Post {
+                        return Some(Post {
                             hn_id: post.id as i64,
                             name: title,
-                        };
+                        });
                     }
                 }
             }
@@ -88,12 +88,11 @@ impl HnClient {
     }
 
     pub(crate) async fn get_jobs_under(post: &Post, max_hn_id: u64) -> Vec<Job> {
-        let post = Self::get_item(post.hn_id as u64).await;
-
-        if post.is_none() {
+        let post = if let Some(post) = Self::get_item(post.hn_id as u64).await {
+            post
+        } else {
             return vec![];
-        }
-        let post = post.unwrap();
+        };
 
         let mut comment_ids = post.kids.unwrap_or_default();
         comment_ids.sort();

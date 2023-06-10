@@ -22,7 +22,7 @@ impl Mailer {
             }
         })
         .await
-        .unwrap();
+        .expect("Failed to spawn mailer task");
     }
 
     async fn tick(state: AppState) {

@@ -16,7 +16,7 @@ fn parse_template(content: &str) -> liquid::Template {
     builder = crate::liquid::add_filters(builder);
     builder
         .build()
-        .unwrap()
+        .expect("Failed to build liquid parser")
         .parse(content)
         .unwrap_or_else(|err| panic!("Failed to compile template:\n{}", err))
 }
@@ -33,11 +33,13 @@ impl Template {
         let fresh_src =
             std::fs::read_to_string(&self.path).expect(&format!("Failed to read {}", self.path));
         let template = parse_template(&fresh_src);
-        template.render(globals).unwrap()
+        template.render(globals).expect("Failed to render template")
     }
 
     fn render_release(&self, globals: &liquid::Object) -> String {
-        self.pre_compiled.render(globals).unwrap()
+        self.pre_compiled
+            .render(globals)
+            .expect("Failed to render template")
     }
 
     pub(crate) fn render(&self, globals: &liquid::Object) -> String {

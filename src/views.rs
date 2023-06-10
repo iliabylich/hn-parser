@@ -33,7 +33,10 @@ impl Views {
     }
 
     fn render(&self, template_id: TemplateId, globals: &liquid::Object) -> String {
-        self.templates.get(&template_id).unwrap().render(globals)
+        self.templates
+            .get(&template_id)
+            .expect("templtes are not configured")
+            .render(globals)
     }
 
     pub(crate) fn index(&self, last_post: &Post, jobs: &[Job]) -> String {

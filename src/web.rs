@@ -18,7 +18,7 @@ impl Web {
         Server::bind(&addr)
             .serve(app.into_make_service())
             .await
-            .unwrap();
+            .expect("Failed to spawn web server");
     }
 
     async fn get_jobs(State(state): State<AppState>) -> Html<String> {

@@ -19,7 +19,7 @@ impl Gmail {
         );
 
         let mailer = AsyncSmtpTransport::<Tokio1Executor>::relay("smtp.gmail.com")
-            .unwrap()
+            .expect("Failed to create mailer")
             .credentials(credentials)
             .build();
         Self { mailer }
@@ -35,20 +35,32 @@ impl Gmail {
     #[allow(dead_code)]
     pub(crate) async fn send_test_email(&self) {
         let message = Message::builder()
-            .from("HN Jobs app <ibylich@gmail.com>".parse().unwrap())
-            .to("Ilya Bylich <ibylich@gmail.com>".parse().unwrap())
+            .from(
+                "HN Jobs app <ibylich@gmail.com>"
+                    .parse()
+                    .expect("Invalid email"),
+            )
+            .to("Ilya Bylich <ibylich@gmail.com>"
+                .parse()
+                .expect("Invalid email"))
             .subject("Test message from HN parser")
             .header(ContentType::TEXT_PLAIN)
             .body(String::from("HN parser is running."))
-            .unwrap();
+            .expect("Failed to build email message");
 
         self.send_message(message).await;
     }
 
     pub(crate) async fn send_html_email(&self, subject: &str, body: String) {
         let message = Message::builder()
-            .from("HN Jobs app <ibylich@gmail.com>".parse().unwrap())
-            .to("Ilya Bylich <ibylich@gmail.com>".parse().unwrap())
+            .from(
+                "HN Jobs app <ibylich@gmail.com>"
+                    .parse()
+                    .expect("Invalid email"),
+            )
+            .to("Ilya Bylich <ibylich@gmail.com>"
+                .parse()
+                .expect("Invalid email"))
             .subject(subject)
             .multipart(
                 MultiPart::alternative()
@@ -65,7 +77,7 @@ impl Gmail {
                             .body(body),
                     ),
             )
-            .unwrap();
+            .expect("Failed to build email message");
 
         self.send_message(message).await;
     }

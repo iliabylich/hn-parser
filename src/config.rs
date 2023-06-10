@@ -42,9 +42,10 @@ impl Config {
     }
 
     pub(crate) fn load() {
-        let mut config: Config = serde_json::from_str(&Config::read()).unwrap();
+        let mut config: Config =
+            serde_json::from_str(&Config::read()).expect("Failed to parse JSON in the config file");
         config.build_keyword_regexes();
-        CONFIG.set(config).unwrap();
+        CONFIG.set(config).expect("failed to set config");
     }
 
     fn build_keyword_regexes(&mut self) {
@@ -54,6 +55,6 @@ impl Config {
     }
 
     pub(crate) fn global() -> &'static Config {
-        CONFIG.get().unwrap()
+        CONFIG.get().expect("config is not loaded")
     }
 }

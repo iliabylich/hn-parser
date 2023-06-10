@@ -12,7 +12,7 @@ where
         let regex = regex::RegexBuilder::new(&regex)
             .case_insensitive(true)
             .build()
-            .unwrap();
+            .expect("Invalid regex");
         Self { regex }
     }
 }

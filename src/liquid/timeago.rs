@@ -19,7 +19,7 @@ struct TimeAgoFilter;
 
 impl Filter for TimeAgoFilter {
     fn evaluate(&self, input: &dyn ValueView, _runtime: &dyn Runtime) -> Result<Value> {
-        let unix_timstamp: u64 = input.to_kstr().parse().unwrap();
+        let unix_timstamp: u64 = input.to_kstr().parse().expect("not a numeric value");
 
         let moment = DateTime::<Utc>::from(UNIX_EPOCH + Duration::from_secs(unix_timstamp));
         let now = Utc::now();
