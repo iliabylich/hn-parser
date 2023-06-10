@@ -1,7 +1,7 @@
 {
     "userId": "whoishiring",
     "pollIntervalInSeconds": 5,
-    "databasePath": ":memory:",
+    "databasePath": "/data/hnparser.sqlite3?mode=rwc",
     "keywords": [
         "rust"
     ],
