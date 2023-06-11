@@ -9,7 +9,7 @@ pub(crate) struct Mailer;
 
 impl Mailer {
     pub(crate) async fn spawn(state: AppState) {
-        state.gmail.send_test_email().await;
+        // state.gmail.send_test_email().await;
 
         let mut interval = interval(Duration::from_secs(
             Config::global().send_email_once_every_seconds,
