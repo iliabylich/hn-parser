@@ -1,14 +1,13 @@
 use liquid::ParserBuilder;
+use rust_embed::RustEmbed;
 
-#[derive(Debug, Hash, PartialEq, Eq)]
-pub(crate) enum TemplateId {
-    Index,
-    Email,
-}
+#[derive(RustEmbed)]
+#[folder = "views/"]
+struct Asset;
 
 pub(crate) struct Template {
-    path: String,
-    pre_compiled: liquid::Template,
+    path: &'static str,
+    cached_template: Option<liquid::Template>,
 }
 
 fn parse_template(content: &str) -> liquid::Template {
@@ -22,31 +21,32 @@ fn parse_template(content: &str) -> liquid::Template {
 }
 
 impl Template {
-    pub(crate) fn new(path: &str, embedded_src: &str) -> Self {
-        Self {
-            path: path.to_string(),
-            pre_compiled: parse_template(embedded_src),
+    pub(crate) fn new(path: &'static str) -> Self {
+        if cfg!(debug_assertions) {
+            Self {
+                path,
+                cached_template: None,
+            }
+        } else {
+            let content =
+                std::fs::read_to_string(path).unwrap_or_else(|_| panic!("Failed to read {}", path));
+            let template = parse_template(&content);
+            Self {
+                path,
+                cached_template: Some(template),
+            }
         }
     }
 
-    fn render_debug(&self, globals: &liquid::Object) -> String {
-        let fresh_src = std::fs::read_to_string(&self.path)
-            .unwrap_or_else(|_| panic!("Failed to read {}", self.path));
-        let template = parse_template(&fresh_src);
-        template.render(globals).expect("Failed to render template")
-    }
-
-    fn render_release(&self, globals: &liquid::Object) -> String {
-        self.pre_compiled
-            .render(globals)
-            .expect("Failed to render template")
-    }
-
     pub(crate) fn render(&self, globals: &liquid::Object) -> String {
-        if cfg!(debug_assertions) {
-            self.render_debug(globals)
+        if let Some(template) = &self.cached_template {
+            template.render(globals).expect("Failed to render template")
         } else {
-            self.render_release(globals)
+            let content = Asset::get(self.path)
+                .expect("Failed to get template from assets")
+                .data;
+            let template = parse_template(std::str::from_utf8(content.as_ref()).unwrap());
+            template.render(globals).expect("Failed to render template")
         }
     }
 }
