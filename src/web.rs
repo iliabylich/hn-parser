@@ -1,7 +1,7 @@
 use axum::{extract::State, response::Html, routing::get, Router};
 use tokio::net::TcpListener;
 
-use crate::{fixture::Fixture, job::Job, post::Post, state::AppState};
+use crate::{config::Config, fixture::Fixture, job::Job, post::Post, state::AppState};
 
 pub(crate) struct Web;
 
@@ -12,7 +12,8 @@ impl Web {
             .route("/preview", get(Self::preview))
             .with_state(state);
 
-        let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
+        let port = Config::global().listen_on;
+        let listener = TcpListener::bind(format!("0.0.0.0:{port}")).await.unwrap();
         println!("Listening on {}", listener.local_addr().unwrap());
 
         axum::serve(listener, app)

@@ -7,6 +7,9 @@ use crate::keyword::Keyword;
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct Config {
+    // Server options
+    pub(crate) listen_on: u16,
+
     // Database options
     pub(crate) database_path: String,
 
