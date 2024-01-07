@@ -1,5 +1,5 @@
-use axum::{extract::State, response::Html, routing::get, Router, Server};
-use std::net::SocketAddr;
+use axum::{extract::State, response::Html, routing::get, Router};
+use tokio::net::TcpListener;
 
 use crate::{fixture::Fixture, job::Job, post::Post, state::AppState};
 
@@ -12,11 +12,10 @@ impl Web {
             .route("/preview", get(Self::preview))
             .with_state(state);
 
-        let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-        println!("Listening on {}", addr);
+        let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
+        println!("Listening on {}", listener.local_addr().unwrap());
 
-        Server::bind(&addr)
-            .serve(app.into_make_service())
+        axum::serve(listener, app)
             .await
             .expect("Failed to spawn web server");
     }
