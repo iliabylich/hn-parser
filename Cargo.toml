@@ -35,7 +35,7 @@ assets = [
   ],
   [
     "config.example.json",
-    "etc/hnparser.json",
+    "etc/hnparser.example.json",
     "644",
   ],
   [
