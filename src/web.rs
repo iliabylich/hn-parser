@@ -1,4 +1,10 @@
-use axum::{extract::State, response::Html, routing::get, Router};
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::{Html, IntoResponse},
+    routing::get,
+    Router,
+};
 use tokio::net::TcpListener;
 
 use crate::{config::Config, fixture::Fixture, job::Job, post::Post, state::AppState};
@@ -10,6 +16,7 @@ impl Web {
         let app = Router::new()
             .route("/jobs", get(Self::get_jobs))
             .route("/preview", get(Self::preview))
+            .route("/jobs/output.css", get(Self::output_css))
             .with_state(state);
 
         let port = Config::global().listen_on;
@@ -39,6 +46,11 @@ impl Web {
         let jobs = vec![Job::fixture(); 10];
         let html = state.views.jobs_email(&jobs);
         Html(html)
+    }
+
+    async fn output_css(State(state): State<AppState>) -> impl IntoResponse {
+        let css = state.views.output_css();
+        (StatusCode::OK, [("content-type", "text/css")], css)
     }
 
     fn highlight_one_keyword(keyword: &str) -> String {

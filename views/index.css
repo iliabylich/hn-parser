@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.highlight-container,
+.highlight {
+    position: relative;
+}
+
+.highlight-container {
+    display: inline-block;
+}
+
+.highlight-container:before {
+    content: " ";
+    display: block;
+    height: 90%;
+    width: 100%;
+    margin-left: 0px;
+    margin-right: -3px;
+    position: absolute;
+    background: #ffd500;
+    transform: rotate(2deg);
+    top: -1px;
+    left: -1px;
+    border-radius: 20% 25% 20% 24%;
+    padding: 10px 3px 3px 10px;
+}
+
+.job-description a {
+    text-decoration-thickness: 2px;
+    text-decoration-color: #6366f1;
+    text-decoration-line: underline;
+    font-weight: 700;
+}

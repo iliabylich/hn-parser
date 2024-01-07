@@ -5,6 +5,7 @@ use std::collections::HashMap;
 enum TemplateId {
     Index,
     Email,
+    OutputCss,
 }
 
 pub(crate) struct Views {
@@ -15,8 +16,9 @@ impl Views {
     pub(crate) fn new() -> Self {
         Self {
             templates: HashMap::from([
-                (TemplateId::Index, Template::new("index.html.liquid")),
-                (TemplateId::Email, Template::new("email.html.liquid")),
+                (TemplateId::Index, Template::new("index.html")),
+                (TemplateId::Email, Template::new("email.html")),
+                (TemplateId::OutputCss, Template::new("output.css")),
             ]),
         }
     }
@@ -38,5 +40,10 @@ impl Views {
             "jobs": jobs
         });
         self.render(TemplateId::Email, &globals)
+    }
+
+    pub(crate) fn output_css(&self) -> String {
+        let globals = liquid::object!({});
+        self.render(TemplateId::OutputCss, &globals)
     }
 }
