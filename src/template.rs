@@ -30,8 +30,8 @@ impl Template {
     }
 
     fn render_debug(&self, globals: &liquid::Object) -> String {
-        let fresh_src =
-            std::fs::read_to_string(&self.path).expect(&format!("Failed to read {}", self.path));
+        let fresh_src = std::fs::read_to_string(&self.path)
+            .unwrap_or_else(|_| panic!("Failed to read {}", self.path));
         let template = parse_template(&fresh_src);
         template.render(globals).expect("Failed to render template")
     }

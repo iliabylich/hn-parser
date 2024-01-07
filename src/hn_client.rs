@@ -57,7 +57,7 @@ impl HnClient {
         join_all(hn_ids.iter().map(|hn_id| Self::get_item(*hn_id)))
             .await
             .into_iter()
-            .filter_map(|x| x)
+            .flatten()
             .collect()
     }
 

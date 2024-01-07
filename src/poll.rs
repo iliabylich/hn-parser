@@ -12,7 +12,7 @@ fn interval_from_config() -> Option<Interval> {
         return None;
     }
     Some(interval(Duration::from_secs(
-        config.poll_interval_in_seconds.into(),
+        config.poll_interval_in_seconds,
     )))
 }
 

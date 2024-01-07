@@ -1,5 +1,4 @@
 use serde::Deserialize;
-use serde_json;
 use tokio::sync::OnceCell;
 
 use crate::keyword::Keyword;
@@ -41,7 +40,7 @@ impl Config {
             String::from("/etc/hnparser.json")
         };
 
-        std::fs::read_to_string(&path).expect("failed to read config file")
+        std::fs::read_to_string(path).expect("failed to read config file")
     }
 
     pub(crate) fn load() {
