@@ -33,7 +33,7 @@ jobs:
         run: cargo install cargo-deb
 
       - name: build
-        run: cargo deb
+        run: cargo deb --deb-revision="$(date +%s)"
 
       - name: release
         uses: ncipollo/release-action@v1
