@@ -34,5 +34,5 @@ jobs:
           allowUpdates: true
           artifactErrorsFailBuild: true
           tag: latest
-          artifacts: target/release/hnparser,target/debian/hnparser_0.1.0_amd64.deb
+          artifacts: target/release/hnparser,target/debian/*.deb
           token: ${{ secrets.GITHUB_TOKEN }}
