@@ -4,7 +4,6 @@ mod fixture;
 mod hn_client;
 mod job;
 mod keyword;
-mod liquid;
 mod mailer;
 mod poll;
 mod post;

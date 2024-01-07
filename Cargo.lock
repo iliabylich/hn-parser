@@ -736,7 +736,6 @@ dependencies = [
  "futures",
  "lettre",
  "liquid",
- "liquid-core",
  "regex",
  "reqwest",
  "rust-embed",

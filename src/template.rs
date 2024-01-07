@@ -11,9 +11,7 @@ pub(crate) struct Template {
 }
 
 fn parse_template(content: &str) -> liquid::Template {
-    let mut builder = ParserBuilder::with_stdlib();
-    builder = crate::liquid::add_filters(builder);
-    builder
+    ParserBuilder::with_stdlib()
         .build()
         .expect("Failed to build liquid parser")
         .parse(content)

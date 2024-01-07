@@ -1,4 +1,8 @@
-use crate::{job::Job, post::Post, template::Template};
+use crate::{
+    job::{Job, JobToRender},
+    post::Post,
+    template::Template,
+};
 use std::collections::HashMap;
 
 #[derive(Debug, Hash, PartialEq, Eq)]
@@ -30,14 +34,14 @@ impl Views {
     pub(crate) fn index(&self, last_post: &Post, jobs: &[Job]) -> String {
         let globals = liquid::object!({
             "post": last_post,
-            "jobs": jobs
+            "jobs": jobs.iter().map(|j| JobToRender::from(j)).collect::<Vec<_>>(),
         });
         self.render(TemplateId::Index, &globals)
     }
 
     pub(crate) fn jobs_email(&self, jobs: &[Job]) -> String {
         let globals = liquid::object!({
-            "jobs": jobs
+            "jobs": jobs.iter().map(|j| JobToRender::from(j)).collect::<Vec<_>>()
         });
         self.render(TemplateId::Email, &globals)
     }
