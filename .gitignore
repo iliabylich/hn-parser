@@ -4,3 +4,4 @@ config.json
 package-lock.json
 /node_modules
 views/output.css
+Cargo.lock
