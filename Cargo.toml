@@ -26,6 +26,10 @@ timeago = "0.4"
 tokio = { version = "1.0", features = ["rt-multi-thread", "macros"] }
 rust-embed = "8.2"
 
+[profile.release]
+opt-level = "z"
+lto = true
+
 [package.metadata.deb]
 assets = [
   [
