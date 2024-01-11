@@ -30,7 +30,9 @@ jobs:
         run: npm install && npm run build:release
 
       - name: install cargo-deb
-        run: cargo install cargo-deb
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deb
 
       - name: build
         run: cargo deb --deb-revision="$(date +%s)"
