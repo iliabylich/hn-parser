@@ -1,5 +1,4 @@
 use anyhow::{Context, Result};
-use futures::future::join_all;
 
 use crate::config::Config;
 
@@ -55,10 +54,13 @@ impl HnClient {
     }
 
     async fn get_items(hn_ids: &[u32]) -> Result<Vec<Item>> {
-        join_all(hn_ids.iter().map(|hn_id| Self::get_item(*hn_id)))
+        hn_ids
+            .iter()
+            .map(|hn_id| Self::get_item(*hn_id))
+            .collect::<futures::future::JoinAll<_>>()
             .await
             .into_iter()
-            .collect()
+            .collect::<anyhow::Result<Vec<_>>>()
     }
 
     async fn get_items_in_chunk_of(hn_ids: &[u32], chunk_size: usize) -> Result<Vec<Item>> {
