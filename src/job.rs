@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{config::Config, database::Database};
+use crate::config::Config;
 
 #[derive(sqlx::FromRow, Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct Job {
@@ -13,27 +13,7 @@ pub(crate) struct Job {
     pub(crate) email_sent: bool,
 }
 
-const CREATE_JOBS_TABLE_SQL: &str = r#"
-    CREATE TABLE IF NOT EXISTS jobs (
-        hn_id INTEGER PRIMARY KEY,
-        text TEXT NOT NULL,
-        by TEXT NOT NULL,
-        post_hn_id INTEGER NOT NULL,
-        time INTEGER NOT NULL,
-        interesting BOOLEAN NOT NULL,
-        email_sent BOOLEAN NOT NULL DEFAULT FALSE
-    )
-"#;
-
 impl Job {
-    pub(crate) async fn create_table(database: &Database) {
-        sqlx::query(CREATE_JOBS_TABLE_SQL)
-            .execute(&database.pool)
-            .await
-            .expect("failed to create `jobs` table");
-        println!("Created `jobs` table");
-    }
-
     pub(crate) fn has_keywords(&self) -> bool {
         Config::global()
             .keyword_regexes

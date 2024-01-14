@@ -17,10 +17,8 @@ async fn main() {
     use crate::{
         config::Config,
         database::Database,
-        job::Job,
         mailer::{Gmail, Mailer},
         poll::Poll,
-        post::Post,
         state::AppState,
         web::Web,
     };
@@ -29,8 +27,7 @@ async fn main() {
     println!("Running with config {:?}", Config::global());
 
     let db = Database::new().await;
-    Post::create_table(&db).await;
-    Job::create_table(&db).await;
+    db.load_schema().await;
 
     let gmail = Gmail::from_global_config();
 

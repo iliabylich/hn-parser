@@ -22,6 +22,14 @@ impl Database {
         Self { pool }
     }
 
+    pub(crate) async fn load_schema(&self) {
+        sqlx::query(include_str!("../schema.sql"))
+            .execute(&self.pool)
+            .await
+            .expect("failed to load schema");
+        println!("Schema loaded");
+    }
+
     pub(crate) async fn create_post_if_missing(&self, post: &Post) {
         sqlx::query(
             r#"
