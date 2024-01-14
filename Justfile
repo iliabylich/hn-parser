@@ -1,14 +1,11 @@
-config := "config.json"
-mode := "debug"
-
-CARGOFLAGS := if mode == "release" { "--release" } else { "" }
-TAILWINDFLAGS := if mode == "release" { "--minify" } else { "--watch" }
-
 run:
-    HNPARSER_CONFIG_PATH="{{config}}" cargo run {{CARGOFLAGS}}
+    HNPARSER_CONFIG_PATH=config.json cargo run
 
-build-frontend:
-    npx tailwindcss -i views/index.css -o ./views/output.css {{TAILWINDFLAGS}}
+tailwind-build:
+    npx tailwindcss -i views/index.css -o ./views/output.css --minify
+
+tailwind-watch:
+    npx tailwindcss -i views/index.css -o ./views/output.css --watch
 
 build-deb:
     cargo deb --deb-revision="$(date +%s)"

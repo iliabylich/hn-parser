@@ -22,8 +22,7 @@ jobs:
         with:
           node-version: '21'
 
-      - name: build styles
-        run: just mode=release build-frontend
+      - run: just tailwind-build
 
       - name: install cargo-deb
         uses: taiki-e/install-action@v2
