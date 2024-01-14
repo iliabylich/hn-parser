@@ -19,7 +19,7 @@
         </a>
 
         <div style="border-bottom: 1px solid black;">
-          {{ job.timeago }}
+          {{ helpers::timeago!(job.time) }}
         </div>
 
         <span>{{ job.text }}</span>

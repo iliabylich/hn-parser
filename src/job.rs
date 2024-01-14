@@ -51,38 +51,3 @@ impl Job {
             .for_each(|keyword| self.text = keyword.replace_all(&self.text, |capture| f(capture)));
     }
 }
-
-#[derive(Debug, Serialize)]
-pub(crate) struct JobToRender {
-    pub(crate) hn_id: i64,
-    pub(crate) text: String,
-    pub(crate) by: String,
-    pub(crate) timeago: String,
-}
-
-fn timestamp_to_timeago(timestamp: i64) -> String {
-    use chrono::prelude::DateTime;
-    use chrono::Utc;
-    use std::time::{Duration, UNIX_EPOCH};
-
-    let moment =
-        DateTime::<Utc>::from(UNIX_EPOCH + Duration::from_secs(timestamp.try_into().unwrap_or(0)));
-    let now = Utc::now();
-    let delta = (now - moment).to_std().unwrap_or_default();
-
-    let mut formatter = timeago::Formatter::new();
-    formatter.num_items(3);
-
-    formatter.convert(delta)
-}
-
-impl From<&Job> for JobToRender {
-    fn from(job: &Job) -> Self {
-        Self {
-            hn_id: job.hn_id,
-            text: job.text.clone(),
-            by: job.by.clone(),
-            timeago: timestamp_to_timeago(job.time),
-        }
-    }
-}
