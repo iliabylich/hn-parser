@@ -16,20 +16,21 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      - uses: extractions/setup-just@v1
+
       - uses: actions/setup-node@v4
         with:
           node-version: '21'
 
       - name: build styles
-        run: npm install && npm run build:release
+        run: just mode=release build-frontend
 
       - name: install cargo-deb
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-deb
 
-      - name: build
-        run: cargo deb --deb-revision="$(date +%s)"
+      - run: just build-deb
 
       - name: release
         uses: ncipollo/release-action@v1
