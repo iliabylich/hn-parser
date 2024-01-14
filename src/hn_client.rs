@@ -45,50 +45,45 @@ impl HnClient {
             .context("failed to parse user response")
     }
 
-    async fn get_item(hn_id: u32) -> Option<Item> {
+    async fn get_item(hn_id: u32) -> Result<Item> {
         reqwest::get(item_url(hn_id))
             .await
-            .ok()?
+            .context("failed to get item")?
             .json::<Item>()
             .await
-            .ok()
+            .context("failed to parse item response")
     }
 
-    async fn get_items(hn_ids: &[u32]) -> Vec<Item> {
+    async fn get_items(hn_ids: &[u32]) -> Result<Vec<Item>> {
         join_all(hn_ids.iter().map(|hn_id| Self::get_item(*hn_id)))
             .await
             .into_iter()
-            .flatten()
             .collect()
     }
 
-    async fn get_items_in_chunk_of(hn_ids: &[u32], chunk_size: usize) -> Vec<Item> {
+    async fn get_items_in_chunk_of(hn_ids: &[u32], chunk_size: usize) -> Result<Vec<Item>> {
         let mut items = Vec::with_capacity(hn_ids.len());
         for chunk in hn_ids.chunks(chunk_size) {
-            items.extend(Self::get_items(chunk).await);
+            items.extend(Self::get_items(chunk).await?);
         }
-        items
+        Ok(items)
     }
 
     pub(crate) async fn get_latest_post() -> Result<Item> {
         let user = Self::get_user().await?;
         for hn_id in user.submitted {
-            if let Some(post) = Self::get_item(hn_id).await {
-                if let Some(title) = post.title.as_ref() {
-                    if title.contains("Ask HN: Who is hiring?") {
-                        return Ok(post);
-                    }
+            let post = Self::get_item(hn_id).await?;
+            if let Some(title) = post.title.as_ref() {
+                if title.contains("Ask HN: Who is hiring?") {
+                    return Ok(post);
                 }
             }
         }
         panic!("Failed to get latest post")
     }
 
-    pub(crate) async fn get_jobs_under(post_hn_id: u32, after_job_id: u32) -> Vec<Item> {
-        let mut comment_ids = Self::get_item(post_hn_id)
-            .await
-            .and_then(|post| post.kids)
-            .unwrap_or_default();
+    pub(crate) async fn get_jobs_under(post_hn_id: u32, after_job_id: u32) -> Result<Vec<Item>> {
+        let mut comment_ids = Self::get_item(post_hn_id).await?.kids.unwrap_or_default();
         comment_ids.sort();
         comment_ids.retain(|e| *e > after_job_id);
 

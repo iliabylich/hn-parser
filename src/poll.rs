@@ -56,7 +56,7 @@ impl Poll {
         println!("Max job id: {:?}", max_job_id);
 
         let mut created_count = 0;
-        for item in HnClient::get_jobs_under(post.id, max_job_id).await {
+        for item in HnClient::get_jobs_under(post.id, max_job_id).await? {
             let by = item.by.unwrap_or_default();
             let text = item.text.unwrap_or_default();
             let interesting = Config::global()?.highlighter.can_highlight(&text);

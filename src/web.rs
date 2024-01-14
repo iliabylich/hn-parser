@@ -43,15 +43,13 @@ async fn get_jobs(
 ) -> Result<Html<String>, AppError> {
     let post = database.last_post().await?.unwrap_or_else(Post::fixture);
 
-    let mut jobs = vec![];
-    for job in database
+    let jobs: Vec<Job> = database
         .list_jobs(post.hn_id)
         .await?
         .unwrap_or_else(|| vec![Job::fixture(); 10])
-    {
-        let job = job.highlight_keywords(highlight_one_keyword)?;
-        jobs.push(job);
-    }
+        .into_iter()
+        .map(|job| job.highlight_keywords(highlight_one_keyword))
+        .collect::<anyhow::Result<Vec<_>>>()?;
 
     let html = Views::index(&post, &jobs)?;
     Ok(Html(html))
