@@ -1,12 +1,12 @@
 use futures::future::join_all;
 
-use crate::{config::Config, job::Job, post::Post};
+use crate::config::Config;
 
 pub(crate) struct HnClient;
 
 #[derive(serde::Deserialize, Debug)]
 struct User {
-    submitted: Vec<u64>,
+    submitted: Vec<u32>,
 }
 
 fn user_url() -> String {
@@ -18,16 +18,16 @@ fn user_url() -> String {
 }
 
 #[derive(serde::Deserialize, Debug)]
-struct Item {
-    id: u64,
-    by: Option<String>,
-    text: Option<String>,
-    title: Option<String>,
-    kids: Option<Vec<u64>>,
-    time: i64,
+pub(crate) struct Item {
+    pub(crate) id: u32,
+    pub(crate) by: Option<String>,
+    pub(crate) text: Option<String>,
+    pub(crate) title: Option<String>,
+    kids: Option<Vec<u32>>,
+    pub(crate) time: i64,
 }
 
-fn item_url(hn_id: u64) -> String {
+fn item_url(hn_id: u32) -> String {
     format!(
         "https://hacker-news.firebaseio.com/v0/item/{}.json?print=pretty",
         hn_id
@@ -44,7 +44,7 @@ impl HnClient {
             .ok()
     }
 
-    async fn get_item(hn_id: u64) -> Option<Item> {
+    async fn get_item(hn_id: u32) -> Option<Item> {
         reqwest::get(item_url(hn_id))
             .await
             .ok()?
@@ -53,7 +53,7 @@ impl HnClient {
             .ok()
     }
 
-    async fn get_items(hn_ids: &[u64]) -> Vec<Item> {
+    async fn get_items(hn_ids: &[u32]) -> Vec<Item> {
         join_all(hn_ids.iter().map(|hn_id| Self::get_item(*hn_id)))
             .await
             .into_iter()
@@ -61,25 +61,21 @@ impl HnClient {
             .collect()
     }
 
-    async fn get_items_in_chunk_of(hn_ids: &[u64], chunk_size: usize) -> Vec<Item> {
-        let mut items = Vec::new();
+    async fn get_items_in_chunk_of(hn_ids: &[u32], chunk_size: usize) -> Vec<Item> {
+        let mut items = Vec::with_capacity(hn_ids.len());
         for chunk in hn_ids.chunks(chunk_size) {
             items.extend(Self::get_items(chunk).await);
         }
         items
     }
 
-    pub(crate) async fn get_latest_post() -> Option<Post> {
+    pub(crate) async fn get_latest_post() -> Option<Item> {
         let user = Self::get_user().await?;
-        for hn_id in &user.submitted {
-            let post = Self::get_item(*hn_id).await;
-            if let Some(post) = post {
-                if let Some(title) = post.title {
+        for hn_id in user.submitted {
+            if let Some(post) = Self::get_item(hn_id).await {
+                if let Some(title) = post.title.as_ref() {
                     if title.contains("Ask HN: Who is hiring?") {
-                        return Some(Post {
-                            hn_id: post.id as i64,
-                            name: title,
-                        });
+                        return Some(post);
                     }
                 }
             }
@@ -87,35 +83,16 @@ impl HnClient {
         panic!("Failed to get latest post")
     }
 
-    pub(crate) async fn get_jobs_under(post: &Post, max_hn_id: u64) -> Vec<Job> {
-        let post = if let Some(post) = Self::get_item(post.hn_id as u64).await {
-            post
-        } else {
-            return vec![];
-        };
-
-        let mut comment_ids = post.kids.unwrap_or_default();
-        comment_ids.sort();
-        comment_ids.retain(|e| *e > max_hn_id);
-
-        println!("Checking comments with ids {:?}", comment_ids);
-
-        Self::get_items_in_chunk_of(&comment_ids, 20)
+    pub(crate) async fn get_jobs_under(post_hn_id: u32, after_job_id: u32) -> Vec<Item> {
+        let mut comment_ids = Self::get_item(post_hn_id)
             .await
-            .into_iter()
-            .map(|comment| {
-                let mut job = Job {
-                    hn_id: comment.id as i64,
-                    text: comment.text.unwrap_or_default(),
-                    by: comment.by.unwrap_or_default(),
-                    post_hn_id: post.id as i64,
-                    time: comment.time,
-                    interesting: false,
-                    email_sent: false,
-                };
-                job.interesting = job.has_keywords();
-                job
-            })
-            .collect::<Vec<_>>()
+            .and_then(|post| post.kids)
+            .unwrap_or_default();
+        comment_ids.sort();
+        comment_ids.retain(|e| *e > after_job_id);
+
+        println!("Loading comments with ids {:?}", comment_ids);
+
+        Self::get_items_in_chunk_of(&comment_ids, 20).await
     }
 }

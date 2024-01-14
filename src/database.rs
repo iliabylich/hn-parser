@@ -30,7 +30,7 @@ impl Database {
         println!("Schema loaded");
     }
 
-    pub(crate) async fn create_post_if_missing(&self, post: &Post) {
+    pub(crate) async fn create_post_if_missing(&self, post: Post) {
         sqlx::query(
             r#"
                 INSERT OR IGNORE INTO posts (hn_id, name)
@@ -73,16 +73,15 @@ impl Database {
         rows_affected == 1
     }
 
-    pub(crate) async fn max_job_id(&self) -> u64 {
-        let max_id: i64 = sqlx::query_scalar(r#"SELECT MAX(hn_id) FROM jobs"#)
+    pub(crate) async fn max_job_id(&self) -> u32 {
+        sqlx::query_scalar(r#"SELECT MAX(hn_id) FROM jobs"#)
             .fetch_one(&self.pool)
             .await
-            .unwrap_or_default();
-        max_id as u64
+            .unwrap_or_default()
     }
 
-    pub(crate) async fn list_jobs(&self, post_hn_id: i64) -> Vec<Job> {
-        sqlx::query_as(
+    pub(crate) async fn list_jobs(&self, post_hn_id: u32) -> Option<Vec<Job>> {
+        let jobs = sqlx::query_as(
             r#"
                 SELECT hn_id, text, by, post_hn_id, time, interesting, email_sent
                 FROM jobs
@@ -92,7 +91,13 @@ impl Database {
         .bind(post_hn_id)
         .fetch_all(&self.pool)
         .await
-        .expect("Failed to fetch jobs")
+        .expect("Failed to fetch jobs");
+
+        if jobs.is_empty() {
+            None
+        } else {
+            Some(jobs)
+        }
     }
 
     pub(crate) async fn new_jobs(&self) -> Vec<Job> {

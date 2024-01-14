@@ -1,7 +1,7 @@
 use std::time::Duration;
 use tokio::time::{interval, Interval};
 
-use crate::{config::Config, hn_client::HnClient, state::AppState};
+use crate::{config::Config, hn_client::HnClient, job::Job, post::Post, state::AppState};
 
 pub(crate) struct Poll;
 
@@ -17,8 +17,12 @@ fn interval_from_config() -> Option<Interval> {
 }
 
 impl Poll {
-    pub(crate) async fn spawn(state: AppState) -> Option<()> {
-        let mut interval = interval_from_config()?;
+    pub(crate) async fn spawn(state: AppState) {
+        let mut interval = if let Some(interval) = interval_from_config() {
+            interval
+        } else {
+            return;
+        };
 
         tokio::task::spawn(async move {
             loop {
@@ -28,26 +32,41 @@ impl Poll {
         })
         .await
         .expect("Failed to spawn poll task");
-
-        Some(())
     }
 
     async fn tick(state: AppState) -> Option<()> {
         let post = HnClient::get_latest_post().await?;
-        state.database.create_post_if_missing(&post).await;
-        println!("Latest post: {:?}", post);
+        println!("Latest post: {} / {:?}", post.id, post.title);
+        state
+            .database
+            .create_post_if_missing(Post {
+                hn_id: post.id,
+                name: post.title.unwrap_or_default(),
+            })
+            .await;
 
         let max_job_id = state.database.max_job_id().await;
         println!("Max job id: {:?}", max_job_id);
 
-        let jobs = HnClient::get_jobs_under(&post, max_job_id).await;
-        let mut created = 0;
-        for job in jobs {
+        let mut created_count = 0;
+        for item in HnClient::get_jobs_under(post.id, max_job_id).await {
+            let by = item.by.unwrap_or_default();
+            let text = item.text.unwrap_or_default();
+            let interesting = Config::global().highlighter.can_highlight(&text);
+            let job = Job {
+                hn_id: item.id,
+                text,
+                by,
+                post_hn_id: post.id,
+                time: item.time,
+                email_sent: false,
+                interesting,
+            };
             if state.database.create_job(&job).await {
-                created += 1;
+                created_count += 1;
             }
         }
-        println!("Sync completed, created {} jobs", created);
+        println!("Sync completed, created {} jobs", created_count);
 
         Some(())
     }

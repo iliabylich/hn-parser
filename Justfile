@@ -1,5 +1,5 @@
 run:
-    HNPARSER_CONFIG_PATH=config.json cargo watch -x run
+    cargo watch -x run
 
 tailwind-build:
     npx tailwindcss -i templates/index.css -o ./templates/output.css --minify

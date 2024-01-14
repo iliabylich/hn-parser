@@ -2,27 +2,23 @@ use askama::Template;
 
 use crate::{job::Job, post::Post};
 
-mod helpers {
-    macro_rules! timeago {
-        ($timestamp:expr) => {{
-            use chrono::prelude::DateTime;
-            use chrono::Utc;
-            use std::time::{Duration, UNIX_EPOCH};
+macro_rules! timeago {
+    ($timestamp:expr) => {{
+        use chrono::prelude::DateTime;
+        use chrono::Utc;
+        use std::time::{Duration, UNIX_EPOCH};
 
-            let moment = DateTime::<Utc>::from(
-                UNIX_EPOCH + Duration::from_secs($timestamp.try_into().unwrap_or(0)),
-            );
-            let now = Utc::now();
-            let delta = (now - moment).to_std().unwrap_or_default();
+        let moment = DateTime::<Utc>::from(
+            UNIX_EPOCH + Duration::from_secs($timestamp.try_into().unwrap_or(0)),
+        );
+        let now = Utc::now();
+        let delta = (now - moment).to_std().unwrap_or_default();
 
-            let mut formatter = timeago::Formatter::new();
-            formatter.num_items(3);
+        let mut formatter = timeago::Formatter::new();
+        formatter.num_items(3);
 
-            formatter.convert(delta)
-        }};
-    }
-
-    pub(crate) use timeago;
+        formatter.convert(delta)
+    }};
 }
 
 #[derive(Template)]
@@ -38,4 +34,4 @@ pub(crate) struct Email<'a> {
     pub(crate) jobs: &'a [Job],
 }
 
-pub(crate) static OUTPUT_CSS: &'static str = include_str!("../templates/output.css");
+pub(crate) static OUTPUT_CSS: &str = include_str!("../templates/output.css");

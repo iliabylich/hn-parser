@@ -31,21 +31,16 @@ pub(crate) struct Config {
 
 static CONFIG: OnceCell<Config> = OnceCell::const_new();
 
+#[cfg(debug_assertions)]
+const CONFIG_PATH: &str = "config.json";
+
+#[cfg(not(debug_assertions))]
+const CONFIG_PATH: &str = "/etc/hnparser.json";
+
 impl Config {
-    fn read() -> String {
-        let path = if cfg!(debug_assertions) {
-            std::env::var("HNPARSER_CONFIG_PATH")
-                .expect("No HNPARSER_CONFIG_PATH environment variable set")
-        } else {
-            String::from("/etc/hnparser.json")
-        };
-
-        std::fs::read_to_string(path).expect("failed to read config file")
-    }
-
     pub(crate) fn load() {
-        let mut config: Config =
-            serde_json::from_str(&Config::read()).expect("Failed to parse JSON in the config file");
+        let file = std::fs::File::open(CONFIG_PATH).expect("Failed to open config file");
+        let mut config = serde_json::from_reader::<_, Config>(file).unwrap();
         config.highlighter = Highlighter::new(&config.keywords);
         CONFIG.set(config).expect("failed to set config");
     }
