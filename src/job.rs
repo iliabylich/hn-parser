@@ -15,19 +15,15 @@ pub(crate) struct Job {
 
 impl Job {
     pub(crate) fn has_keywords(&self) -> bool {
-        Config::global()
-            .keyword_regexes
-            .iter()
-            .any(|keyword| keyword.is_match(&self.text))
+        Config::global().highlighter.can_highlight(&self.text)
     }
 
     pub(crate) fn highlight_keywords<F>(&mut self, f: F)
     where
         F: Fn(&str) -> String,
     {
-        Config::global()
-            .keyword_regexes
-            .iter()
-            .for_each(|keyword| self.text = keyword.replace_all(&self.text, |capture| f(capture)));
+        self.text = Config::global()
+            .highlighter
+            .highlight(std::mem::take(&mut self.text), |capture| f(capture))
     }
 }

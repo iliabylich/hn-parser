@@ -9,13 +9,8 @@ use crate::{
 pub(crate) struct Views;
 
 impl Views {
-    pub(crate) fn index(last_post: &Post, jobs: &[Job]) -> String {
-        Index {
-            post: last_post,
-            jobs,
-        }
-        .render()
-        .unwrap()
+    pub(crate) fn index(post: &Post, jobs: &[Job]) -> String {
+        Index { post, jobs }.render().unwrap()
     }
 
     pub(crate) fn jobs_email(jobs: &[Job]) -> String {

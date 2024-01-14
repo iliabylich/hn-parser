@@ -1,9 +1,9 @@
 mod config;
 mod database;
 mod fixture;
+mod highlighter;
 mod hn_client;
 mod job;
-mod keyword;
 mod mailer;
 mod poll;
 mod post;

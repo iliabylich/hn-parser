@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use tokio::sync::OnceCell;
 
-use crate::keyword::Keyword;
+use crate::highlighter::Highlighter;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -19,7 +19,7 @@ pub(crate) struct Config {
     // Parser options
     pub(crate) keywords: Vec<String>,
     #[serde(skip_deserializing)]
-    pub(crate) keyword_regexes: Vec<Keyword>,
+    pub(crate) highlighter: Highlighter,
 
     // Gmail options
     pub(crate) gmail_email: String,
@@ -46,14 +46,8 @@ impl Config {
     pub(crate) fn load() {
         let mut config: Config =
             serde_json::from_str(&Config::read()).expect("Failed to parse JSON in the config file");
-        config.build_keyword_regexes();
+        config.highlighter = Highlighter::new(&config.keywords);
         CONFIG.set(config).expect("failed to set config");
-    }
-
-    fn build_keyword_regexes(&mut self) {
-        for keyword in &self.keywords {
-            self.keyword_regexes.push(Keyword::from(keyword))
-        }
     }
 
     pub(crate) fn global() -> &'static Config {
