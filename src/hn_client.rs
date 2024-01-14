@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use futures::future::join_all;
 
 use crate::config::Config;
@@ -9,12 +10,12 @@ struct User {
     submitted: Vec<u32>,
 }
 
-fn user_url() -> String {
-    let config = Config::global();
-    format!(
+fn user_url() -> Result<String> {
+    let config = Config::global()?;
+    Ok(format!(
         "https://hacker-news.firebaseio.com/v0/user/{}.json?print=pretty",
         config.user_id
-    )
+    ))
 }
 
 #[derive(serde::Deserialize, Debug)]
@@ -35,13 +36,13 @@ fn item_url(hn_id: u32) -> String {
 }
 
 impl HnClient {
-    async fn get_user() -> Option<User> {
-        reqwest::get(user_url())
+    async fn get_user() -> Result<User> {
+        reqwest::get(user_url()?)
             .await
-            .ok()?
+            .context("failed to get user response")?
             .json::<User>()
             .await
-            .ok()
+            .context("failed to parse user response")
     }
 
     async fn get_item(hn_id: u32) -> Option<Item> {
@@ -69,13 +70,13 @@ impl HnClient {
         items
     }
 
-    pub(crate) async fn get_latest_post() -> Option<Item> {
+    pub(crate) async fn get_latest_post() -> Result<Item> {
         let user = Self::get_user().await?;
         for hn_id in user.submitted {
             if let Some(post) = Self::get_item(hn_id).await {
                 if let Some(title) = post.title.as_ref() {
                     if title.contains("Ask HN: Who is hiring?") {
-                        return Some(post);
+                        return Ok(post);
                     }
                 }
             }

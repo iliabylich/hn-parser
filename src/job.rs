@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
@@ -14,13 +15,17 @@ pub(crate) struct Job {
 }
 
 impl Job {
-    pub(crate) fn highlight_keywords(mut self, highlight_fn: impl Fn(&str) -> String) -> Self {
+    pub(crate) fn highlight_keywords(
+        mut self,
+        highlight_fn: impl Fn(&str) -> String,
+    ) -> Result<Self> {
         self.text = Config::global()
+            .context("no config")?
             .highlighter
             .highlight(std::mem::take(&mut self.text), |capture| {
                 highlight_fn(capture)
             });
 
-        self
+        Ok(self)
     }
 }

@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use sqlx::sqlite::SqlitePool;
 
 use crate::{config::Config, job::Job, post::Post};
@@ -7,30 +8,31 @@ pub(crate) struct Database {
     pub(crate) pool: SqlitePool,
 }
 
-fn database_url() -> String {
-    let config = Config::global();
-    format!("sqlite:{}", config.database_path)
+fn database_url() -> Result<String> {
+    let config = Config::global()?;
+    Ok(format!("sqlite:{}", config.database_path))
 }
 
 impl Database {
-    pub(crate) async fn new() -> Self {
-        let pool = SqlitePool::connect(&database_url())
+    pub(crate) async fn new() -> Result<Self> {
+        let pool = SqlitePool::connect(&database_url()?)
             .await
-            .expect("Failed to connect to sqlite");
+            .context("Failed to connect to sqlite")?;
         println!("Connected to sqlite");
 
-        Self { pool }
+        Ok(Self { pool })
     }
 
-    pub(crate) async fn load_schema(&self) {
+    pub(crate) async fn load_schema(&self) -> Result<()> {
         sqlx::query(include_str!("../schema.sql"))
             .execute(&self.pool)
             .await
-            .expect("failed to load schema");
+            .context("failed to load schema")?;
         println!("Schema loaded");
+        Ok(())
     }
 
-    pub(crate) async fn create_post_if_missing(&self, post: Post) {
+    pub(crate) async fn create_post_if_missing(&self, post: Post) -> Result<()> {
         sqlx::query(
             r#"
                 INSERT OR IGNORE INTO posts (hn_id, name)
@@ -41,17 +43,18 @@ impl Database {
         .bind(&post.name)
         .execute(&self.pool)
         .await
-        .expect("Failed to create post");
+        .context("Failed to create post")?;
+        Ok(())
     }
 
-    pub(crate) async fn last_post(&self) -> Option<Post> {
+    pub(crate) async fn last_post(&self) -> Result<Option<Post>> {
         sqlx::query_as(r#"SELECT hn_id, name FROM posts ORDER BY hn_id DESC LIMIT 1"#)
             .fetch_optional(&self.pool)
             .await
-            .expect("Failed to fetch last post")
+            .context("Failed to fetch last post")
     }
 
-    pub(crate) async fn create_job(&self, job: &Job) -> bool {
+    pub(crate) async fn create_job(&self, job: &Job) -> Result<bool> {
         let rows_affected = sqlx::query(
             r#"
                 INSERT OR IGNORE INTO jobs (hn_id, text, by, post_hn_id, time, interesting, email_sent)
@@ -67,10 +70,10 @@ impl Database {
         .bind(job.email_sent)
         .execute(&self.pool)
         .await
-        .expect("Failed to create job")
+        .context("Failed to create job")?
         .rows_affected();
 
-        rows_affected == 1
+        Ok(rows_affected == 1)
     }
 
     pub(crate) async fn max_job_id(&self) -> u32 {
@@ -80,7 +83,7 @@ impl Database {
             .unwrap_or_default()
     }
 
-    pub(crate) async fn list_jobs(&self, post_hn_id: u32) -> Option<Vec<Job>> {
+    pub(crate) async fn list_jobs(&self, post_hn_id: u32) -> Result<Option<Vec<Job>>> {
         let jobs = sqlx::query_as(
             r#"
                 SELECT hn_id, text, by, post_hn_id, time, interesting, email_sent
@@ -91,16 +94,16 @@ impl Database {
         .bind(post_hn_id)
         .fetch_all(&self.pool)
         .await
-        .expect("Failed to fetch jobs");
+        .context("Failed to fetch jobs")?;
 
         if jobs.is_empty() {
-            None
+            Ok(None)
         } else {
-            Some(jobs)
+            Ok(Some(jobs))
         }
     }
 
-    pub(crate) async fn new_jobs(&self) -> Vec<Job> {
+    pub(crate) async fn new_jobs(&self) -> Result<Vec<Job>> {
         let jobs = sqlx::query_as(
             r#"
                 SELECT hn_id, text, by, post_hn_id, time, interesting, email_sent
@@ -110,13 +113,13 @@ impl Database {
         )
         .fetch_all(&self.pool)
         .await
-        .expect("Failed to fetch new jobs");
+        .context("Failed to fetch new jobs")?;
 
         sqlx::query("UPDATE jobs SET email_sent = 1")
             .execute(&self.pool)
             .await
-            .expect("Failed to update email_sent");
+            .context("Failed to update email_sent")?;
 
-        jobs
+        Ok(jobs)
     }
 }

@@ -1,3 +1,6 @@
+use anyhow::Result;
+
+mod app_error;
 mod config;
 mod database;
 mod fixture;
@@ -13,7 +16,7 @@ mod views;
 mod web;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     use crate::{
         config::Config,
         database::Database,
@@ -23,19 +26,21 @@ async fn main() {
         web::Web,
     };
 
-    Config::load();
+    Config::load()?;
     println!("Running with config {:?}", Config::global());
 
-    let db = Database::new().await;
-    db.load_schema().await;
+    let db = Database::new().await?;
+    db.load_schema().await?;
 
-    let gmail = Gmail::from_global_config();
+    let gmail = Gmail::from_global_config()?;
 
     let state = AppState::new(db, gmail);
 
-    tokio::join!(
+    tokio::try_join!(
         Poll::spawn(state.clone()),
         Web::spawn(state.clone()),
         Mailer::spawn(state.clone())
-    );
+    )?;
+
+    Ok(())
 }

@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use askama::Template;
 
 use crate::{
@@ -9,12 +10,14 @@ use crate::{
 pub(crate) struct Views;
 
 impl Views {
-    pub(crate) fn index(post: &Post, jobs: &[Job]) -> String {
-        Index { post, jobs }.render().unwrap()
+    pub(crate) fn index(post: &Post, jobs: &[Job]) -> Result<String> {
+        Index { post, jobs }
+            .render()
+            .context("failed to render index")
     }
 
-    pub(crate) fn jobs_email(jobs: &[Job]) -> String {
-        Email { jobs }.render().unwrap()
+    pub(crate) fn jobs_email(jobs: &[Job]) -> Result<String> {
+        Email { jobs }.render().context("failed to render email")
     }
 
     pub(crate) fn output_css() -> &'static str {

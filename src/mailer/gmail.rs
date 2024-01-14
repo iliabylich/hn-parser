@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use lettre::{
     message::{header::ContentType, MultiPart},
     transport::smtp::authentication::Credentials,
@@ -12,15 +13,15 @@ pub(crate) struct Gmail {
 }
 
 impl Gmail {
-    pub(crate) fn from_global_config() -> Self {
-        let config = Config::global();
+    pub(crate) fn from_global_config() -> Result<Self> {
+        let config = Config::global()?;
         let credentials = Credentials::from((&config.gmail_email, &config.gmail_password));
 
         let mailer = AsyncSmtpTransport::<Tokio1Executor>::relay("smtp.gmail.com")
-            .unwrap()
+            .context("failed to construct mailer")?
             .credentials(credentials)
             .build();
-        Self { mailer }
+        Ok(Self { mailer })
     }
 
     async fn send_message(&self, message: Message) {
@@ -31,22 +32,35 @@ impl Gmail {
     }
 
     #[allow(dead_code)]
-    pub(crate) async fn send_test_email(&self) {
+    pub(crate) async fn send_test_email(&self) -> Result<()> {
         let message = Message::builder()
-            .from("HN Jobs app <ibylich@gmail.com>".parse().unwrap())
-            .to("Ilya Bylich <ibylich@gmail.com>".parse().unwrap())
+            .from(
+                "HN Jobs app <ibylich@gmail.com>"
+                    .parse()
+                    .context("failed to parse from")?,
+            )
+            .to("Ilya Bylich <ibylich@gmail.com>"
+                .parse()
+                .context("failed to parse to")?)
             .subject("Test message from HN parser")
             .header(ContentType::TEXT_PLAIN)
             .body(String::from("HN parser is running."))
-            .expect("Failed to build email message");
+            .context("Failed to build email message")?;
 
         self.send_message(message).await;
+        Ok(())
     }
 
-    pub(crate) async fn send_html_email(&self, subject: &str, body: String) {
+    pub(crate) async fn send_html_email(&self, subject: &str, body: String) -> Result<()> {
         let message = Message::builder()
-            .from("HN Jobs app <ibylich@gmail.com>".parse().unwrap())
-            .to("Ilya Bylich <ibylich@gmail.com>".parse().unwrap())
+            .from(
+                "HN Jobs app <ibylich@gmail.com>"
+                    .parse()
+                    .context("failed to parse from")?,
+            )
+            .to("Ilya Bylich <ibylich@gmail.com>"
+                .parse()
+                .context("failed to parse to")?)
             .subject(subject)
             .multipart(
                 MultiPart::alternative()
@@ -63,8 +77,9 @@ impl Gmail {
                             .body(body),
                     ),
             )
-            .expect("Failed to build email message");
+            .context("Failed to build email message")?;
 
         self.send_message(message).await;
+        Ok(())
     }
 }

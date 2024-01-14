@@ -1,21 +1,24 @@
+use anyhow::{Context, Result};
+
 #[derive(Debug, Default)]
 pub(crate) struct Highlighter {
     regexes: Vec<regex::Regex>,
 }
 
 impl Highlighter {
-    pub(crate) fn new(strings: &[String]) -> Self {
-        let regexes = strings
-            .iter()
-            .map(|s| {
-                let regex = format!("\\b{}\\b", s);
-                regex::RegexBuilder::new(&regex)
-                    .case_insensitive(true)
-                    .build()
-                    .expect("Invalid regex")
-            })
-            .collect();
-        Self { regexes }
+    pub(crate) fn new(strings: &[String]) -> Result<Self> {
+        let mut regexes = Vec::with_capacity(strings.len());
+
+        for string in strings {
+            let regex = format!("\\b{}\\b", string);
+            let regex = regex::RegexBuilder::new(&regex)
+                .case_insensitive(true)
+                .build()
+                .context("invalid regex")?;
+            regexes.push(regex);
+        }
+
+        Ok(Self { regexes })
     }
 }
 
