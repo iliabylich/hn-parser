@@ -17,8 +17,8 @@
       </h2>
 
       <p class="mt-2 text-lg leading-8 text-gray-900">
-        {{ post['name'] }}
-        <a class="underline text-lime-950" href="https://news.ycombinator.com/item?id={{ post['hn_id'] }}">
+        {{ post.name }}
+        <a class="underline text-lime-950" href="https://news.ycombinator.com/item?id={{ post.hn_id }}">
           (open thread on HN)
         </a>
       </p>
@@ -29,14 +29,14 @@
       <div class="py-5 w-full">
         <div class="bg-white shadow-lg ring-1 ring-black/5 rounded-xl flex-col gap-6 dark:bg-slate-800">
           <p class="py-6 px-8 text-slate-900 font-medium text-sm sm:text-base dark:text-slate-200">
-            <a href="https://news.ycombinator.com/item?id={{ job['hn_id'] }}" class="underline">
-              by {{ job['by'] }} (open item on HN)
+            <a href="https://news.ycombinator.com/item?id={{ job.hn_id }}" class="underline">
+              by {{ job.by }} (open item on HN)
             </a>
-            &nbsp;{{ job['timeago'] }}
+            &nbsp;{{ job.timeago }}
           </p>
 
           <div class="pb-6 px-8 mt-1 text-xs leading-5 text-gray-500 job-description">
-            {{ job['text'] }}
+            {{ job.text }}
           </div>
         </div>
       </div>

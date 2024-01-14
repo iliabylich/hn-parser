@@ -7,7 +7,9 @@ use axum::{
 };
 use tokio::net::TcpListener;
 
-use crate::{config::Config, fixture::Fixture, job::Job, post::Post, state::AppState};
+use crate::{
+    config::Config, fixture::Fixture, job::Job, post::Post, state::AppState, views::Views,
+};
 
 pub(crate) struct Web;
 
@@ -28,28 +30,27 @@ impl Web {
             .expect("Failed to spawn web server");
     }
 
-    async fn get_jobs(State(state): State<AppState>) -> Html<String> {
-        let db = &state.database;
-        let post = db.last_post().await.unwrap_or_else(Post::fixture);
-        let mut jobs = db.list_jobs(post.hn_id).await;
+    async fn get_jobs(State(AppState { database, .. }): State<AppState>) -> Html<String> {
+        let post = database.last_post().await.unwrap_or_else(Post::fixture);
+        let mut jobs = database.list_jobs(post.hn_id).await;
         if jobs.is_empty() {
             jobs = vec![Job::fixture(); 10];
         }
         for job in &mut jobs {
             job.highlight_keywords(Self::highlight_one_keyword);
         }
-        let html = state.views.index(&post, &jobs);
+        let html = Views::index(&post, &jobs);
         Html(html)
     }
 
-    async fn preview(State(state): State<AppState>) -> Html<String> {
+    async fn preview() -> Html<String> {
         let jobs = vec![Job::fixture(); 10];
-        let html = state.views.jobs_email(&jobs);
+        let html = Views::jobs_email(&jobs);
         Html(html)
     }
 
-    async fn output_css(State(state): State<AppState>) -> impl IntoResponse {
-        let css = state.views.output_css();
+    async fn output_css() -> impl IntoResponse {
+        let css = Views::output_css();
         (StatusCode::OK, [("content-type", "text/css")], css)
     }
 

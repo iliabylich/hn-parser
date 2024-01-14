@@ -1,4 +1,4 @@
-use crate::{config::Config, state::AppState};
+use crate::{config::Config, state::AppState, views::Views};
 use std::time::Duration;
 use tokio::time::interval;
 
@@ -32,7 +32,7 @@ impl Mailer {
             return;
         }
 
-        let body = state.views.jobs_email(&jobs);
+        let body = Views::jobs_email(&jobs);
         state.gmail.send_html_email("New jobs from HN", body).await
     }
 }

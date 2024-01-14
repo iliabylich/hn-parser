@@ -14,15 +14,15 @@
     <div>
       {% for job in jobs %}
       <div style="border: 1px solid black; padding: 5px; margin: 10px 0;">
-        <a href="https://news.ycombinator.com/item?id={{ job['hn_id'] }}" style="border-bottom: 1px solid black;">
-          by {{ job['by'] }} (go to item on HN)
+        <a href="https://news.ycombinator.com/item?id={{ job.hn_id }}" style="border-bottom: 1px solid black;">
+          by {{ job.by }} (go to item on HN)
         </a>
 
         <div style="border-bottom: 1px solid black;">
-          {{ job['timeago'] }}
+          {{ job.timeago }}
         </div>
 
-        <span>{{ job['text'] }}</span>
+        <span>{{ job.text }}</span>
       </div>
       {% endfor %}
     </div>

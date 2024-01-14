@@ -1,11 +1,11 @@
 run:
-    HNPARSER_CONFIG_PATH=config.json cargo run
+    HNPARSER_CONFIG_PATH=config.json cargo watch -x run
 
 tailwind-build:
-    npx tailwindcss -i views/index.css -o ./views/output.css --minify
+    npx tailwindcss -i templates/index.css -o ./templates/output.css --minify
 
 tailwind-watch:
-    npx tailwindcss -i views/index.css -o ./views/output.css --watch
+    npx tailwindcss -i templates/index.css -o ./templates/output.css --watch
 
 build-deb:
     cargo deb --deb-revision="$(date +%s)"

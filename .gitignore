@@ -3,5 +3,5 @@ config.json
 *.sqlite3
 package-lock.json
 /node_modules
-views/output.css
+templates/output.css
 Cargo.lock

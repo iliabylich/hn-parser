@@ -8,7 +8,7 @@ mod mailer;
 mod poll;
 mod post;
 mod state;
-mod template;
+mod templates;
 mod views;
 mod web;
 
@@ -22,7 +22,6 @@ async fn main() {
         poll::Poll,
         post::Post,
         state::AppState,
-        views::Views,
         web::Web,
     };
 
@@ -33,11 +32,9 @@ async fn main() {
     Post::create_table(&db).await;
     Job::create_table(&db).await;
 
-    let views = Views::new();
-
     let gmail = Gmail::from_global_config();
 
-    let state = AppState::new(db, views, gmail);
+    let state = AppState::new(db, gmail);
 
     tokio::join!(
         Poll::spawn(state.clone()),

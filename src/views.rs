@@ -1,53 +1,37 @@
+use askama::Template;
+
 use crate::{
     job::{Job, JobToRender},
     post::Post,
-    template::Template,
+    templates::{Email, Index, OUTPUT_CSS},
 };
-use std::collections::HashMap;
 
-#[derive(Debug, Hash, PartialEq, Eq)]
-enum TemplateId {
-    Index,
-    Email,
-    OutputCss,
-}
-
-pub(crate) struct Views {
-    templates: HashMap<TemplateId, Template>,
-}
+pub(crate) struct Views;
 
 impl Views {
-    pub(crate) fn new() -> Self {
-        Self {
-            templates: HashMap::from([
-                (TemplateId::Index, Template::new("index.html")),
-                (TemplateId::Email, Template::new("email.html")),
-                (TemplateId::OutputCss, Template::new("output.css")),
-            ]),
+    pub(crate) fn index(last_post: &Post, jobs: &[Job]) -> String {
+        let jobs = jobs
+            .iter()
+            .map(|j| JobToRender::from(j))
+            .collect::<Vec<_>>();
+
+        Index {
+            post: last_post,
+            jobs: &jobs,
         }
+        .render()
+        .unwrap()
     }
 
-    fn render(&self, template_id: TemplateId, globals: &liquid::Object) -> String {
-        self.templates.get(&template_id).unwrap().render(globals)
+    pub(crate) fn jobs_email(jobs: &[Job]) -> String {
+        let jobs = jobs
+            .iter()
+            .map(|j| JobToRender::from(j))
+            .collect::<Vec<_>>();
+        Email { jobs: &jobs }.render().unwrap()
     }
 
-    pub(crate) fn index(&self, last_post: &Post, jobs: &[Job]) -> String {
-        let globals = liquid::object!({
-            "post": last_post,
-            "jobs": jobs.iter().map(|j| JobToRender::from(j)).collect::<Vec<_>>(),
-        });
-        self.render(TemplateId::Index, &globals)
-    }
-
-    pub(crate) fn jobs_email(&self, jobs: &[Job]) -> String {
-        let globals = liquid::object!({
-            "jobs": jobs.iter().map(|j| JobToRender::from(j)).collect::<Vec<_>>()
-        });
-        self.render(TemplateId::Email, &globals)
-    }
-
-    pub(crate) fn output_css(&self) -> String {
-        let globals = liquid::object!({});
-        self.render(TemplateId::OutputCss, &globals)
+    pub(crate) fn output_css() -> &'static str {
+        OUTPUT_CSS
     }
 }
