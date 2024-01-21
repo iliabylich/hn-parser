@@ -32,15 +32,6 @@ const CONFIG_PATH: &str = "config.json";
 #[cfg(not(debug_assertions))]
 const CONFIG_PATH: &str = "/etc/hnparser.json";
 
-#[derive(Debug)]
-struct ConfigIsNotSetError {}
-impl std::fmt::Display for ConfigIsNotSetError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "global Config is not set")
-    }
-}
-impl std::error::Error for ConfigIsNotSetError {}
-
 impl Config {
     pub(crate) fn setup() -> Result<()> {
         let file = std::fs::File::open(CONFIG_PATH).context("failed to open config file")?;
@@ -52,10 +43,6 @@ impl Config {
     }
 
     pub(crate) fn global() -> Result<&'static Config> {
-        if let Some(config) = CONFIG.get() {
-            Ok(config)
-        } else {
-            Err(ConfigIsNotSetError {}.into())
-        }
+        CONFIG.get().context("global Config is not set")
     }
 }
