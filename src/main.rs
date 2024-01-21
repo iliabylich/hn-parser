@@ -26,9 +26,11 @@ async fn main() -> Result<()> {
     println!("Running with config {:?}", Config::global());
 
     Mailer::setup()?;
-    Poll::setup(Arc::clone(&state))?;
 
-    tokio::try_join!(Poll::spawn(), Web::spawn(Arc::clone(&state)))?;
+    tokio::try_join!(
+        Poll::spawn(Arc::clone(&state)),
+        Web::spawn(Arc::clone(&state))
+    )?;
 
     Ok(())
 }

@@ -28,7 +28,7 @@ fn interval_from_config() -> Result<Option<Interval>> {
 }
 
 impl Poll {
-    pub(crate) fn setup(state: Arc<Mutex<AppState>>) -> Result<()> {
+    fn setup(state: Arc<Mutex<AppState>>) -> Result<()> {
         let poll = Self { state };
         POLL.set(poll).context("Failed to set poll")?;
         Ok(())
@@ -38,7 +38,9 @@ impl Poll {
         POLL.get().context("global poll is not set")
     }
 
-    pub(crate) async fn spawn() -> Result<()> {
+    pub(crate) async fn spawn(state: Arc<Mutex<AppState>>) -> Result<()> {
+        Self::setup(state)?;
+
         let mut interval = if let Some(interval) = interval_from_config()? {
             interval
         } else {
@@ -94,7 +96,7 @@ impl Poll {
 
         {
             let mut state = self.state.lock().await;
-            state.update(post, new_jobs)?;
+            state.update(post, all_jobs)?;
         }
 
         Ok(())
