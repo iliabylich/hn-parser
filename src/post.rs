@@ -1,9 +1,8 @@
 use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
 
 use crate::hn_client::Item;
 
-#[derive(sqlx::FromRow, Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone)]
 pub(crate) struct Post {
     pub(crate) id: u32,
     pub(crate) title: String,

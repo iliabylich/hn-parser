@@ -1,9 +1,8 @@
 use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
 
 use crate::{config::Config, hn_client::Item};
 
-#[derive(sqlx::FromRow, Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub(crate) struct Job {
     pub(crate) id: u32,
     pub(crate) text: String,

@@ -2,7 +2,6 @@
     "listenOn": 3000,
     "userId": "whoishiring",
     "pollIntervalInSeconds": 5,
-    "databasePath": "/data/hnparser.sqlite3?mode=rwc",
     "keywords": [
         "rust"
     ],
