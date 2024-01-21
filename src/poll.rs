@@ -1,10 +1,20 @@
 use anyhow::{Context, Result};
-use std::time::Duration;
-use tokio::time::{interval, Interval};
+use std::{sync::Arc, time::Duration};
+use tokio::{
+    sync::{Mutex, OnceCell},
+    time::{interval, Interval},
+};
 
-use crate::{config::Config, hn_client::HnClient, job::Job, post::Post, state::AppState};
+use crate::{
+    config::Config, hn_client::HnClient, job::Job, mailer::Mailer, post::Post, state::AppState,
+};
 
-pub(crate) struct Poll;
+#[derive(Debug)]
+pub(crate) struct Poll {
+    state: Arc<Mutex<AppState>>,
+}
+
+static POLL: OnceCell<Poll> = OnceCell::const_new();
 
 fn interval_from_config() -> Result<Option<Interval>> {
     let config = Config::global()?;
@@ -18,18 +28,30 @@ fn interval_from_config() -> Result<Option<Interval>> {
 }
 
 impl Poll {
-    pub(crate) async fn spawn(state: AppState) -> Result<()> {
+    pub(crate) fn setup(state: Arc<Mutex<AppState>>) -> Result<()> {
+        let poll = Self { state };
+        POLL.set(poll).context("Failed to set poll")?;
+        Ok(())
+    }
+
+    fn global() -> Result<&'static Self> {
+        POLL.get().context("global poll is not set")
+    }
+
+    pub(crate) async fn spawn() -> Result<()> {
         let mut interval = if let Some(interval) = interval_from_config()? {
             interval
         } else {
             return Ok(());
         };
 
+        let this = Self::global().context("global poll is not set")?;
+
         tokio::task::spawn(async move {
             loop {
                 interval.tick().await;
 
-                match Self::tick(state.clone()).await {
+                match this.tick().await {
                     Ok(_) => {}
                     Err(e) => {
                         println!("Poll tick failed: {:?}", e);
@@ -41,40 +63,40 @@ impl Poll {
         .context("Failed to spawn poll task")
     }
 
-    async fn tick(state: AppState) -> Result<u32> {
-        let post = HnClient::get_latest_post().await?;
+    async fn tick(&self) -> Result<()> {
+        let post: Post = HnClient::get_latest_post().await?.try_into()?;
         println!("Latest post: {} / {:?}", post.id, post.title);
-        state
-            .database
-            .create_post_if_missing(Post {
-                hn_id: post.id,
-                name: post.title.unwrap_or_default(),
-            })
-            .await?;
 
-        let max_job_id = state.database.max_job_id().await;
-        println!("Max job id: {:?}", max_job_id);
+        let last_seen_job_id = { self.state.lock().await.get_last_seen_job_id() };
+        println!("Max job id: {:?}", last_seen_job_id);
 
-        let mut created_count = 0;
-        for item in HnClient::get_jobs_under(post.id, max_job_id).await? {
-            let by = item.by.unwrap_or_default();
-            let text = item.text.unwrap_or_default();
-            let interesting = Config::global()?.highlighter.can_highlight(&text);
-            let job = Job {
-                hn_id: item.id,
-                text,
-                by,
-                post_hn_id: post.id,
-                time: item.time,
-                email_sent: false,
-                interesting,
-            };
-            if state.database.create_job(&job).await? {
-                created_count += 1;
-            }
+        let config = Config::global().context("Failed to load config")?;
+
+        let all_jobs = HnClient::get_jobs_under(post.id)
+            .await?
+            .into_iter()
+            .filter_map(|item| Job::try_from(item).ok())
+            .filter(|job| config.highlighter.can_highlight(&job.text))
+            .collect::<Vec<_>>();
+
+        let new_jobs = all_jobs
+            .iter()
+            .filter(|job| job.id > last_seen_job_id)
+            .cloned()
+            .collect::<Vec<_>>();
+        println!(
+            "Sync completed, found {} jobs, {} are new",
+            all_jobs.len(),
+            new_jobs.len()
+        );
+
+        Mailer::send_jobs_email(&new_jobs).await?;
+
+        {
+            let mut state = self.state.lock().await;
+            state.update(post, new_jobs)?;
         }
-        println!("Sync completed, created {} jobs", created_count);
 
-        Ok(created_count)
+        Ok(())
     }
 }

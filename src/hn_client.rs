@@ -17,7 +17,7 @@ fn user_url() -> Result<String> {
     ))
 }
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Debug, Clone)]
 pub(crate) struct Item {
     pub(crate) id: u32,
     pub(crate) by: Option<String>,
@@ -84,12 +84,9 @@ impl HnClient {
         panic!("Failed to get latest post")
     }
 
-    pub(crate) async fn get_jobs_under(post_hn_id: u32, after_job_id: u32) -> Result<Vec<Item>> {
+    pub(crate) async fn get_jobs_under(post_hn_id: u32) -> Result<Vec<Item>> {
         let mut comment_ids = Self::get_item(post_hn_id).await?.kids.unwrap_or_default();
         comment_ids.sort();
-        comment_ids.retain(|e| *e > after_job_id);
-
-        println!("Loading comments with ids {:?}", comment_ids);
 
         Self::get_items_in_chunk_of(&comment_ids, 20).await
     }

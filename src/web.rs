@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::Context;
 use axum::{
     extract::State,
@@ -6,17 +8,16 @@ use axum::{
     routing::get,
     Router,
 };
-use tokio::net::TcpListener;
+use tokio::{net::TcpListener, sync::Mutex};
 
 use crate::{
-    app_error::AppError, config::Config, fixture::Fixture, job::Job, post::Post, state::AppState,
-    views::Views,
+    app_error::AppError, config::Config, fixture::Fixture, job::Job, state::AppState, views::Views,
 };
 
 pub(crate) struct Web;
 
 impl Web {
-    pub(crate) async fn spawn(state: AppState) -> anyhow::Result<()> {
+    pub(crate) async fn spawn(state: Arc<Mutex<AppState>>) -> anyhow::Result<()> {
         let app = Router::new()
             .route("/jobs", get(get_jobs))
             .route("/preview", get(preview))
@@ -38,15 +39,16 @@ impl Web {
     }
 }
 
-async fn get_jobs(
-    State(AppState { database, .. }): State<AppState>,
-) -> Result<Html<String>, AppError> {
-    let post = database.last_post().await?.unwrap_or_else(Post::fixture);
+async fn get_jobs(State(state): State<Arc<Mutex<AppState>>>) -> Result<Html<String>, AppError> {
+    let post;
+    let mut jobs;
+    {
+        let state = state.lock().await;
+        post = state.get_current_post();
+        jobs = state.get_current_jobs();
+    }
 
-    let jobs: Vec<Job> = database
-        .list_jobs(post.hn_id)
-        .await?
-        .unwrap_or_else(|| vec![Job::fixture(); 10])
+    jobs = jobs
         .into_iter()
         .map(|job| job.highlight_keywords(highlight_one_keyword))
         .collect::<anyhow::Result<Vec<_>>>()?;

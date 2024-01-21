@@ -9,8 +9,8 @@ pub(crate) trait Fixture {
 impl Fixture for Post {
     fn fixture() -> Self {
         Self {
-            hn_id: 12345,
-            name: String::from("Who's hiring now"),
+            id: 12345,
+            title: "Who's hiring now".to_string(),
         }
     }
 }
@@ -20,13 +20,10 @@ static LOREM_IPSUM_WITH_RUST: &str = "Lorem ipsum dolor sit amet, consectetur ad
 impl Fixture for Job {
     fn fixture() -> Self {
         Self {
-            hn_id: Default::default(),
+            id: 12345,
             text: LOREM_IPSUM_WITH_RUST.repeat(15),
-            by: String::from("Username"),
-            post_hn_id: 12345,
+            by: "Username".to_string(),
             time: 1298888434,
-            interesting: true,
-            email_sent: false,
         }
     }
 }

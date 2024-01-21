@@ -1,8 +1,9 @@
+use std::sync::Arc;
+
 use anyhow::Result;
 
 mod app_error;
 mod config;
-mod database;
 mod fixture;
 mod highlighter;
 mod hn_client;
@@ -17,30 +18,17 @@ mod web;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    use crate::{
-        config::Config,
-        database::Database,
-        mailer::{Gmail, Mailer},
-        poll::Poll,
-        state::AppState,
-        web::Web,
-    };
+    use crate::{config::Config, mailer::Mailer, poll::Poll, state::AppState, web::Web};
 
-    Config::load()?;
+    let state = AppState::new()?;
+
+    Config::setup()?;
     println!("Running with config {:?}", Config::global());
 
-    let db = Database::new().await?;
-    db.load_schema().await?;
+    Mailer::setup()?;
+    Poll::setup(Arc::clone(&state))?;
 
-    let gmail = Gmail::from_global_config()?;
-
-    let state = AppState::new(db, gmail);
-
-    tokio::try_join!(
-        Poll::spawn(state.clone()),
-        Web::spawn(state.clone()),
-        Mailer::spawn(state.clone())
-    )?;
+    tokio::try_join!(Poll::spawn(), Web::spawn(Arc::clone(&state)))?;
 
     Ok(())
 }

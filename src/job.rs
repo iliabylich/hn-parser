@@ -1,17 +1,14 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::config::Config;
+use crate::{config::Config, hn_client::Item};
 
 #[derive(sqlx::FromRow, Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct Job {
-    pub(crate) hn_id: u32,
+    pub(crate) id: u32,
     pub(crate) text: String,
     pub(crate) by: String,
-    pub(crate) post_hn_id: u32,
     pub(crate) time: i64,
-    pub(crate) interesting: bool,
-    pub(crate) email_sent: bool,
 }
 
 impl Job {
@@ -27,5 +24,22 @@ impl Job {
             });
 
         Ok(self)
+    }
+}
+
+impl TryFrom<Item> for Job {
+    type Error = anyhow::Error;
+
+    fn try_from(item: Item) -> Result<Self, Self::Error> {
+        let text = item.text.context("no text")?;
+        let by = item.by.unwrap_or_default();
+        let time = item.time;
+
+        Ok(Self {
+            id: item.id,
+            text,
+            by,
+            time,
+        })
     }
 }

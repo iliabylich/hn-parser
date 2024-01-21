@@ -10,9 +10,6 @@ pub(crate) struct Config {
     // Server options
     pub(crate) listen_on: u16,
 
-    // Database options
-    pub(crate) database_path: String,
-
     // HN options
     pub(crate) user_id: String,
     pub(crate) poll_interval_in_seconds: u64,
@@ -25,9 +22,6 @@ pub(crate) struct Config {
     // Gmail options
     pub(crate) gmail_email: String,
     pub(crate) gmail_password: String,
-
-    // Mailer options
-    pub(crate) send_email_once_every_seconds: u64,
 }
 
 static CONFIG: OnceCell<Config> = OnceCell::const_new();
@@ -48,7 +42,7 @@ impl std::fmt::Display for ConfigIsNotSetError {
 impl std::error::Error for ConfigIsNotSetError {}
 
 impl Config {
-    pub(crate) fn load() -> Result<()> {
+    pub(crate) fn setup() -> Result<()> {
         let file = std::fs::File::open(CONFIG_PATH).context("failed to open config file")?;
         let mut config =
             serde_json::from_reader::<_, Config>(file).context("failed to parse config file")?;
