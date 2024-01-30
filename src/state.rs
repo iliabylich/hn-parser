@@ -16,7 +16,7 @@ const CACHE_FILE: &str = "/tmp/hnparser-last-seen-job-id";
 impl AppState {
     pub(crate) fn new() -> Result<Arc<Mutex<Self>>> {
         let last_seen_job_id = match std::fs::read_to_string(CACHE_FILE) {
-            Ok(content) => match content.parse::<u32>() {
+            Ok(content) => match content.trim().parse::<u32>() {
                 Ok(id) => id,
                 Err(e) => {
                     println!("failed to parse state file: {}", e);
