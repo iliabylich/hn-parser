@@ -5,7 +5,7 @@ AssertPathExists=/usr/bin/hnparser
 WorkingDirectory=~
 ExecStart=/usr/bin/hnparser
 Restart=always
-PrivateTmp=true
+PrivateTmp=false
 NoNewPrivileges=true
 
 [Install]
