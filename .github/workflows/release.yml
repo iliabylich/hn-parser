@@ -18,7 +18,7 @@ jobs:
         with:
           targets: x86_64-unknown-linux-musl
 
-      - uses: extractions/setup-just@v1
+      - uses: extractions/setup-just@v2
 
       - uses: actions/setup-node@v4
         with:
