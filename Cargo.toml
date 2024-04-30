@@ -41,11 +41,6 @@ assets = [
     "755",
   ],
   [
-    "config.example.json",
-    "etc/hnparser.example.json",
-    "644",
-  ],
-  [
     "debian/hnparser.service",
     "lib/systemd/system/hnparser.service",
     "644",

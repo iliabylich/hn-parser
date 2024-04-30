@@ -32,8 +32,14 @@ const CONFIG_PATH: &str = "config.json";
 #[cfg(not(debug_assertions))]
 const CONFIG_PATH: &str = "/etc/hnparser.json";
 
+const DEFAULT_CONFIG: &str = include_str!("../config.example.json");
+
 impl Config {
     pub(crate) fn setup() -> Result<()> {
+        if !std::path::Path::new(CONFIG_PATH).exists() {
+            std::fs::write(CONFIG_PATH, DEFAULT_CONFIG).unwrap()
+        }
+
         let file = std::fs::File::open(CONFIG_PATH).context("failed to open config file")?;
         let mut config =
             serde_json::from_reader::<_, Config>(file).context("failed to parse config file")?;
