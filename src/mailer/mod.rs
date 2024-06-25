@@ -20,8 +20,9 @@ impl Mailer {
         let config = Config::global()?;
         let credentials = Credentials::from((&config.gmail_email, &config.gmail_password));
 
-        let mailer = AsyncSmtpTransport::<Tokio1Executor>::relay("smtp.gmail.com")
+        let mailer = AsyncSmtpTransport::<Tokio1Executor>::starttls_relay("smtp.gmail.com")
             .context("failed to construct mailer")?
+            .port(587)
             .credentials(credentials)
             .build();
         let mailer = Self { mailer };
