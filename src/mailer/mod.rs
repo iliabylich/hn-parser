@@ -17,7 +17,7 @@ static MAILER: OnceCell<Mailer> = OnceCell::const_new();
 
 impl Mailer {
     pub(crate) fn setup() -> Result<()> {
-        let config = Config::global()?;
+        let config = Config::global();
         let credentials = Credentials::from((&config.gmail_email, &config.gmail_password));
 
         let mailer = AsyncSmtpTransport::<Tokio1Executor>::starttls_relay("smtp.gmail.com")

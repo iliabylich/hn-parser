@@ -24,7 +24,7 @@ impl Web {
             .route("/jobs/output.css", get(output_css))
             .with_state(state);
 
-        let port = Config::global()?.listen_on;
+        let port = Config::global().listen_on;
         let listener = TcpListener::bind(("0.0.0.0", port))
             .await
             .context("failed to bind")?;
@@ -51,7 +51,7 @@ async fn get_jobs(State(state): State<Arc<Mutex<AppState>>>) -> Result<Html<Stri
     jobs = jobs
         .into_iter()
         .map(|job| job.highlight_keywords(highlight_one_keyword))
-        .collect::<anyhow::Result<Vec<_>>>()?;
+        .collect::<Vec<_>>();
 
     let html = Views::index(&post, &jobs)?;
     Ok(Html(html))

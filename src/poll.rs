@@ -16,15 +16,13 @@ pub(crate) struct Poll {
 
 static POLL: OnceCell<Poll> = OnceCell::const_new();
 
-fn interval_from_config() -> Result<Option<Interval>> {
-    let config = Config::global()?;
-    if config.poll_interval_in_seconds == 0 {
+fn interval_from_config() -> Option<Interval> {
+    let poll_interval_in_seconds = Config::global().poll_interval_in_seconds;
+    if poll_interval_in_seconds == 0 {
         println!("Polling is disabled");
-        return Ok(None);
+        return None;
     }
-    Ok(Some(interval(Duration::from_secs(
-        config.poll_interval_in_seconds,
-    ))))
+    Some(interval(Duration::from_secs(poll_interval_in_seconds)))
 }
 
 impl Poll {
@@ -41,7 +39,7 @@ impl Poll {
     pub(crate) async fn spawn(state: Arc<Mutex<AppState>>) -> Result<()> {
         Self::setup(state)?;
 
-        let mut interval = if let Some(interval) = interval_from_config()? {
+        let mut interval = if let Some(interval) = interval_from_config() {
             interval
         } else {
             return Ok(());
@@ -72,7 +70,7 @@ impl Poll {
         let last_seen_job_id = { self.state.lock().await.get_last_seen_job_id() };
         println!("Max job id: {:?}", last_seen_job_id);
 
-        let config = Config::global().context("Failed to load config")?;
+        let config = Config::global();
 
         let all_jobs = HnClient::get_jobs_under(post.id)
             .await?

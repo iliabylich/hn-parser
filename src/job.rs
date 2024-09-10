@@ -11,18 +11,14 @@ pub(crate) struct Job {
 }
 
 impl Job {
-    pub(crate) fn highlight_keywords(
-        mut self,
-        highlight_fn: impl Fn(&str) -> String,
-    ) -> Result<Self> {
+    pub(crate) fn highlight_keywords(mut self, highlight_fn: impl Fn(&str) -> String) -> Self {
         self.text = Config::global()
-            .context("no config")?
             .highlighter
             .highlight(std::mem::take(&mut self.text), |capture| {
                 highlight_fn(capture)
             });
 
-        Ok(self)
+        self
     }
 }
 

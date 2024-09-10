@@ -9,12 +9,11 @@ struct User {
     submitted: Vec<u32>,
 }
 
-fn user_url() -> Result<String> {
-    let config = Config::global()?;
-    Ok(format!(
+fn user_url() -> String {
+    format!(
         "https://hacker-news.firebaseio.com/v0/user/{}.json?print=pretty",
-        config.user_id
-    ))
+        Config::global().user_id
+    )
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
@@ -36,7 +35,7 @@ fn item_url(hn_id: u32) -> String {
 
 impl HnClient {
     async fn get_user() -> Result<User> {
-        reqwest::get(user_url()?)
+        reqwest::get(user_url())
             .await
             .context("failed to get user response")?
             .json::<User>()

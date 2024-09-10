@@ -48,7 +48,7 @@ impl Config {
         Ok(())
     }
 
-    pub(crate) fn global() -> Result<&'static Config> {
-        CONFIG.get().context("global Config is not set")
+    pub(crate) fn global() -> &'static Config {
+        CONFIG.get().expect("global Config is not set")
     }
 }
