@@ -24,6 +24,7 @@ jobs:
         with:
           node-version: '21'
 
+      - run: npm install
       - run: just tailwind-build
 
       - run: sudo apt update && sudo apt install musl musl-dev
