@@ -25,7 +25,7 @@ impl Web {
             .with_state(state);
 
         let port = Config::global().listen_on;
-        let listener = TcpListener::bind(("0.0.0.0", port))
+        let listener = TcpListener::bind(("127.0.0.1", port))
             .await
             .context("failed to bind")?;
         println!(
