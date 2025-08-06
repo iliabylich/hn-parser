@@ -1,8 +1,8 @@
-use anyhow::{Context, Result};
+use anyhow::{Context as _, Result};
 use lettre::{
-    message::{header::ContentType, MultiPart},
-    transport::smtp::authentication::Credentials,
     AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
+    message::{MultiPart, header::ContentType},
+    transport::smtp::authentication::Credentials,
 };
 use tokio::sync::OnceCell;
 

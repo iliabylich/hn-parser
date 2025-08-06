@@ -1,13 +1,12 @@
-use std::sync::Arc;
-
-use anyhow::Context;
+use anyhow::Context as _;
 use axum::{
+    Router,
     extract::State,
     http::StatusCode,
     response::{Html, IntoResponse},
     routing::get,
-    Router,
 };
+use std::sync::Arc;
 use tokio::{net::TcpListener, sync::Mutex};
 
 use crate::{
@@ -24,7 +23,7 @@ impl Web {
             .route("/jobs/output.css", get(output_css))
             .with_state(state);
 
-        let port = Config::global().listen_on;
+        let port = Config::global().port;
         let listener = TcpListener::bind(("127.0.0.1", port))
             .await
             .context("failed to bind")?;

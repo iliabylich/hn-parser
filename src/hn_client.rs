@@ -1,6 +1,5 @@
-use anyhow::{Context, Result};
-
 use crate::config::Config;
+use anyhow::{Context as _, Result};
 
 pub(crate) struct HnClient;
 

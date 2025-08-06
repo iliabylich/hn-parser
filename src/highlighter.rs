@@ -1,13 +1,18 @@
-use anyhow::{Context, Result};
+use crate::config::Config;
+use anyhow::{Context as _, Result};
+use tokio::sync::OnceCell;
 
 #[derive(Debug, Default)]
 pub(crate) struct Highlighter {
     regexes: Vec<regex::Regex>,
 }
 
+static HIGHLIGHTER: OnceCell<Highlighter> = OnceCell::const_new();
+
 impl Highlighter {
-    pub(crate) fn new(strings: &[String]) -> Result<Self> {
-        let regexes = strings
+    pub(crate) fn setup() -> Result<()> {
+        let regexes = Config::global()
+            .keywords
             .iter()
             .map(|string| {
                 let regex = format!("\\b{}\\b", string);
@@ -17,8 +22,14 @@ impl Highlighter {
                     .context("invalid regex")
             })
             .collect::<Result<Vec<_>>>()?;
+        HIGHLIGHTER
+            .set(Self { regexes })
+            .context("failed to set global Highlighter")?;
+        Ok(())
+    }
 
-        Ok(Self { regexes })
+    pub(crate) fn global() -> &'static Self {
+        HIGHLIGHTER.get().expect("global Highlighter is not set")
     }
 }
 

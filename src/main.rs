@@ -18,12 +18,17 @@ mod web;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    use crate::{config::Config, mailer::Mailer, poll::Poll, state::AppState, web::Web};
+    use crate::{
+        config::Config, highlighter::Highlighter, mailer::Mailer, poll::Poll, state::AppState,
+        web::Web,
+    };
 
     let state = AppState::new()?;
 
-    Config::setup()?;
+    Config::setup().await?;
     println!("Running with config {:?}", Config::global());
+
+    Highlighter::setup()?;
 
     Mailer::setup()?;
 

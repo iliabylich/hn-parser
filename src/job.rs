@@ -1,6 +1,5 @@
-use anyhow::{Context, Result};
-
-use crate::{config::Config, hn_client::Item};
+use crate::{highlighter::Highlighter, hn_client::Item};
+use anyhow::{Context as _, Result};
 
 #[derive(Debug, Clone)]
 pub(crate) struct Job {
@@ -12,11 +11,9 @@ pub(crate) struct Job {
 
 impl Job {
     pub(crate) fn highlight_keywords(mut self, highlight_fn: impl Fn(&str) -> String) -> Self {
-        self.text = Config::global()
-            .highlighter
-            .highlight(std::mem::take(&mut self.text), |capture| {
-                highlight_fn(capture)
-            });
+        self.text = Highlighter::global().highlight(std::mem::take(&mut self.text), |capture| {
+            highlight_fn(capture)
+        });
 
         self
     }

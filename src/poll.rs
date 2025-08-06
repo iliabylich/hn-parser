@@ -1,12 +1,13 @@
-use anyhow::{Context, Result};
+use anyhow::{Context as _, Result};
 use std::{sync::Arc, time::Duration};
 use tokio::{
     sync::{Mutex, OnceCell},
-    time::{interval, Interval},
+    time::{Interval, interval},
 };
 
 use crate::{
-    config::Config, hn_client::HnClient, job::Job, mailer::Mailer, post::Post, state::AppState,
+    config::Config, highlighter::Highlighter, hn_client::HnClient, job::Job, mailer::Mailer,
+    post::Post, state::AppState,
 };
 
 #[derive(Debug)]
@@ -70,13 +71,11 @@ impl Poll {
         let last_seen_job_id = { self.state.lock().await.get_last_seen_job_id() };
         println!("Max job id: {:?}", last_seen_job_id);
 
-        let config = Config::global();
-
         let all_jobs = HnClient::get_jobs_under(post.id)
             .await?
             .into_iter()
             .filter_map(|item| Job::try_from(item).ok())
-            .filter(|job| config.highlighter.can_highlight(&job.text))
+            .filter(|job| Highlighter::global().can_highlight(&job.text))
             .collect::<Vec<_>>();
 
         let new_jobs = all_jobs
