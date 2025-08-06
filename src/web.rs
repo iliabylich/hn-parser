@@ -47,9 +47,12 @@ async fn get_jobs(State(state): State<Arc<Mutex<AppState>>>) -> Result<Html<Stri
         jobs = state.get_current_jobs();
     }
 
+    const HIGHLIGHT_PRE: &str = r#"<span class="highlight-container"><span class="highlight">"#;
+    const HIGHLIGHT_POST: &str = r#"</span></span>"#;
+
     jobs = jobs
         .into_iter()
-        .map(|job| job.highlight_keywords(highlight_one_keyword))
+        .map(|job| job.highlight_keywords(HIGHLIGHT_PRE, HIGHLIGHT_POST))
         .collect::<Vec<_>>();
 
     let html = Views::index(&post, &jobs)?;
@@ -64,17 +67,4 @@ async fn preview() -> Result<Html<String>, AppError> {
 async fn output_css() -> impl IntoResponse {
     let css = Views::output_css();
     (StatusCode::OK, [("content-type", "text/css")], css)
-}
-
-fn highlight_one_keyword(keyword: &str) -> String {
-    format!(
-        r#"
-            <span class="highlight-container">
-                <span class="highlight">
-                    {}
-                </span>
-            </span>
-        "#,
-        keyword
-    )
 }

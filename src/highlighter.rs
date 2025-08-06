@@ -34,15 +34,17 @@ impl Highlighter {
 }
 
 impl Highlighter {
-    pub(crate) fn can_highlight(&self, s: impl AsRef<str>) -> bool {
-        self.regexes.iter().any(|regex| regex.is_match(s.as_ref()))
+    pub(crate) fn can_highlight(&self, text: &str) -> bool {
+        self.regexes.iter().any(|regex| regex.is_match(text))
     }
 
-    pub(crate) fn highlight(&self, s: String, f: impl Fn(&str) -> String) -> String {
-        self.regexes.iter().fold(s, |s, regex| {
-            regex
-                .replace_all(&s, |captures: &regex::Captures| f(&captures[0]))
-                .into_owned()
-        })
+    pub(crate) fn highlight(&self, text: &mut String, pre: &str, post: &str) {
+        for re in self.regexes.iter() {
+            *text = re
+                .replace_all(text, |captures: &regex::Captures<'_>| {
+                    format!("{pre}{}{post}", &captures[0])
+                })
+                .to_string();
+        }
     }
 }

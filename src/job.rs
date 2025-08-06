@@ -10,11 +10,8 @@ pub(crate) struct Job {
 }
 
 impl Job {
-    pub(crate) fn highlight_keywords(mut self, highlight_fn: impl Fn(&str) -> String) -> Self {
-        self.text = Highlighter::global().highlight(std::mem::take(&mut self.text), |capture| {
-            highlight_fn(capture)
-        });
-
+    pub(crate) fn highlight_keywords(mut self, pre: &str, post: &str) -> Self {
+        Highlighter::global().highlight(&mut self.text, pre, post);
         self
     }
 }
