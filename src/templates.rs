@@ -1,11 +1,10 @@
+use crate::state::{Job, Post};
 use askama::Template;
-
-use crate::{job::Job, post::Post};
 
 macro_rules! timeago {
     ($timestamp:expr) => {{
-        use chrono::prelude::DateTime;
         use chrono::Utc;
+        use chrono::prelude::DateTime;
         use std::time::{Duration, UNIX_EPOCH};
 
         let moment = DateTime::<Utc>::from(
@@ -23,15 +22,15 @@ macro_rules! timeago {
 
 #[derive(Template)]
 #[template(path = "index.html", escape = "none")]
-pub(crate) struct Index<'a> {
-    pub(crate) post: &'a Post,
-    pub(crate) jobs: &'a [Job],
+pub(crate) struct Index {
+    pub(crate) post: Post,
+    pub(crate) jobs: Vec<Job>,
 }
 
 #[derive(Template)]
 #[template(path = "email.html", escape = "none")]
-pub(crate) struct Email<'a> {
-    pub(crate) jobs: &'a [Job],
+pub(crate) struct Email {
+    pub(crate) jobs: Vec<Job>,
 }
 
 pub(crate) static OUTPUT_CSS: &str = include_str!("../templates/output.css");

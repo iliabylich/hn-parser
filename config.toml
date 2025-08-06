@@ -1,5 +1,4 @@
 port = 3000
-user_id = "whoishiring"
 poll_interval_in_seconds = 10
 keywords = ["rust"]
 gmail_email = "ibylich@gmail.com"
