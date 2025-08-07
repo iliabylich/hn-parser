@@ -1,36 +1,50 @@
-use std::sync::Arc;
-
+use crate::{
+    config::Config, mailer_task::MailerTask, scraper_task::ScraperTask, state_task::StateTask,
+    web::Web,
+};
 use anyhow::Result;
 
 mod app_error;
 mod config;
-mod fixture;
 mod highlighter;
-mod hn_client;
-mod job;
 mod mailer;
-mod poll;
-mod post;
+mod mailer_task;
+mod non_empty_vec;
+mod scraper;
+mod scraper_task;
 mod state;
+mod state_task;
 mod templates;
 mod views;
 mod web;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    use crate::{config::Config, mailer::Mailer, poll::Poll, state::AppState, web::Web};
+    env_logger::init();
 
-    let state = AppState::new()?;
+    let config = Config::read().await?;
+    log::info!("Running with config {config:?}");
 
-    Config::setup()?;
-    println!("Running with config {:?}", Config::global());
+    let (scraper, mut scraper_rx) = ScraperTask::spawn(&config);
+    let (state, state_ctl, mut state_rx) = StateTask::spawn(&config)?;
+    let (mailer, mailer_ctl) = MailerTask::spawn(&config);
+    let web = Web::spawn(state_ctl.clone(), &config).await?;
 
-    Mailer::setup()?;
+    let router = tokio::spawn(async move {
+        loop {
+            tokio::select! {
+                Some((root, items)) = scraper_rx.recv() => {
+                    state_ctl.set(root, items).await;
+                }
 
-    tokio::try_join!(
-        Poll::spawn(Arc::clone(&state)),
-        Web::spawn(Arc::clone(&state))
-    )?;
+                Some(new_jobs) = state_rx.recv() => {
+                    mailer_ctl.send(new_jobs).await;
+                }
+            }
+        }
+    });
+
+    tokio::try_join!(scraper, state, mailer, router, web)?;
 
     Ok(())
 }

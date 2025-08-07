@@ -1,68 +1,95 @@
-use anyhow::{Context, Result};
-use std::sync::Arc;
-use tokio::sync::Mutex;
+use crate::{highlighter::Highlighter, non_empty_vec::NonEmptyVec, scraper::Item};
+use std::collections::HashMap;
 
-use crate::{fixture::Fixture, job::Job, post::Post};
-
-#[derive(Clone, Debug)]
-pub(crate) struct AppState {
-    last_seen_job_id: u32,
-    current_post: Option<Post>,
-    current_jobs: Vec<Job>,
+#[derive(Default)]
+pub(crate) struct State {
+    pub(crate) post: Post,
+    pub(crate) jobs: HashMap<u32, Job>,
 }
 
-const CACHE_FILE: &str = "/tmp/hnparser-last-seen-job-id";
-
-impl AppState {
-    pub(crate) fn new() -> Result<Arc<Mutex<Self>>> {
-        let last_seen_job_id = match std::fs::read_to_string(CACHE_FILE) {
-            Ok(content) => match content.trim().parse::<u32>() {
-                Ok(id) => id,
-                Err(e) => {
-                    println!("failed to parse state file: {}", e);
-                    0
-                }
-            },
-            Err(e) => {
-                println!("failed to read state file: {}", e);
-                0
+impl State {
+    pub(crate) fn set(
+        &mut self,
+        root: Item,
+        items: Vec<Item>,
+        highlighter: &Highlighter,
+    ) -> Option<NonEmptyVec<Job>> {
+        self.post = Post::from(root);
+        let mut new_jobs = vec![];
+        for item in items {
+            let job = Job::from(item);
+            if !highlighter.can_highlight(&job.text) {
+                continue;
             }
-        };
 
-        Ok(Arc::new(Mutex::new(Self {
-            last_seen_job_id,
-            current_post: None,
-            current_jobs: vec![],
-        })))
+            if !self.jobs.contains_key(&job.id) {
+                new_jobs.push(job.clone());
+            }
+            self.jobs.insert(job.id, job);
+        }
+
+        NonEmptyVec::try_new(new_jobs)
     }
 
-    pub(crate) fn get_last_seen_job_id(&self) -> u32 {
-        self.last_seen_job_id
+    pub(crate) fn get(&self) -> (Post, Vec<Job>) {
+        let mut jobs = self.jobs.values().cloned().collect::<Vec<_>>();
+        jobs.sort_unstable_by_key(|job| job.time);
+        (self.post.clone(), jobs)
     }
+}
 
-    pub(crate) fn get_current_post(&self) -> Post {
-        self.current_post.clone().unwrap_or_else(Post::fixture)
-    }
+#[derive(Debug, Clone)]
+pub(crate) struct Post {
+    pub(crate) id: u32,
+    pub(crate) title: String,
+}
 
-    pub(crate) fn get_current_jobs(&self) -> Vec<Job> {
-        if self.current_jobs.is_empty() {
-            vec![Job::fixture(); 10]
-        } else {
-            self.current_jobs.clone()
+impl Default for Post {
+    fn default() -> Self {
+        Self {
+            id: 0,
+            title: String::from("???"),
         }
     }
+}
 
-    pub(crate) fn update(&mut self, post: Post, jobs: Vec<Job>) -> Result<()> {
-        self.current_post = Some(post);
-        self.current_jobs = jobs;
-        self.last_seen_job_id = self
-            .current_jobs
-            .iter()
-            .map(|job| job.id)
-            .max()
-            .unwrap_or(self.last_seen_job_id);
+impl From<Item> for Post {
+    fn from(item: Item) -> Self {
+        Self {
+            id: item.id,
+            title: item.title.unwrap_or_else(|| String::from("???")),
+        }
+    }
+}
 
-        std::fs::write(CACHE_FILE, self.last_seen_job_id.to_string())
-            .context("failed to write state file")
+#[derive(Debug, Clone)]
+pub(crate) struct Job {
+    pub(crate) id: u32,
+    pub(crate) text: String,
+    pub(crate) by: String,
+    pub(crate) time: i64,
+}
+
+impl From<Item> for Job {
+    fn from(item: Item) -> Self {
+        Self {
+            id: item.id,
+            text: item.text.unwrap_or_default(),
+            by: item.by.unwrap_or_default(),
+            time: item.time,
+        }
+    }
+}
+
+impl Job {
+    pub(crate) fn fixture() -> Self {
+        const LOREM_IPSUM_WITH_RUST: &str = "Lorem ipsum dolor sit amet, consectetur adipiscing Rust elit, sed RUST do eiusmod tempor incididunt ut labore et rust dolore magna aliqua.";
+
+        Self {
+            id: 12345,
+            text: LOREM_IPSUM_WITH_RUST.repeat(15),
+            by: "Username".to_string(),
+            time: 1298888434,
+        }
     }
 }

@@ -1,0 +1,6 @@
+port = 3000
+poll_interval_in_seconds = 10
+keywords = ["rust"]
+gmail_email = "me@gmail.com"
+gmail_password = "sekret"
+send_email_once_every_seconds = 10

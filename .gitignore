@@ -1,5 +1,5 @@
 /target
-config.json
+config.toml
 *.sqlite3
 package-lock.json
 /node_modules

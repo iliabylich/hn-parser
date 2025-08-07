@@ -1,22 +1,21 @@
-use anyhow::{Context, Result};
+use anyhow::{Context as _, Result};
 use askama::Template;
 
 use crate::{
-    job::Job,
-    post::Post,
+    state::{Job, Post},
     templates::{Email, Index, OUTPUT_CSS},
 };
 
 pub(crate) struct Views;
 
 impl Views {
-    pub(crate) fn index(post: &Post, jobs: &[Job]) -> Result<String> {
+    pub(crate) fn index(post: Post, jobs: Vec<Job>) -> Result<String> {
         Index { post, jobs }
             .render()
             .context("failed to render index")
     }
 
-    pub(crate) fn jobs_email(jobs: &[Job]) -> Result<String> {
+    pub(crate) fn jobs_email(jobs: Vec<Job>) -> Result<String> {
         Email { jobs }.render().context("failed to render email")
     }
 
