@@ -13,29 +13,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-unknown-linux-musl
+        with: { targets: x86_64-unknown-linux-musl }
 
-      - uses: extractions/setup-just@v4
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '21'
-
-      - run: npm install
-      - run: just tailwind-build
+      - uses: jdx/mise-action@v4
+        with: { install: true }
 
       - run: sudo apt update && sudo apt install musl musl-dev
       - run: sudo ln -s /bin/x86_64-linux-musl-gcc /bin/musl-gcc
 
-      - name: install cargo-deb
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-deb
-
-      - run: just build-deb
+      - run: mise release
 
       - name: release
         uses: ncipollo/release-action@v1

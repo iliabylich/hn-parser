@@ -1,0 +1,29 @@
+[task_config]
+shell = "bash -euo pipefail -c"
+
+[tools]
+node = "latest"
+"aqua:cargo-bins/cargo-binstall" = "latest"
+"cargo:cargo-deb" = "latest"
+
+[settings]
+cargo.binstall_quickinstall = true
+
+[tasks.dev]
+depends = ["cargo:watch", "tailwind:watch"]
+
+[tasks."cargo:watch"]
+run = "cargo watch -x run"
+
+[tasks."tailwind:watch"]
+run = "npx @tailwindcss/cli -i templates/index.css -o ./templates/output.css --watch"
+
+[tasks.release]
+run = """
+npm install
+npx @tailwindcss/cli -i templates/index.css -o ./templates/output.css --minify
+
+cargo build --target=x86_64-unknown-linux-musl --release
+strip target/x86_64-unknown-linux-musl/release/hnparser
+cargo-deb --deb-revision="$(date +%s)" --target=x86_64-unknown-linux-musl
+"""
