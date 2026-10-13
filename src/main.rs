@@ -7,6 +7,7 @@ use anyhow::Result;
 mod app_error;
 mod config;
 mod highlighter;
+mod http_client;
 mod mailer;
 mod mailer_task;
 mod non_empty_vec;
@@ -21,6 +22,10 @@ mod web;
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
     env_logger::init();
+
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .map_err(|_| anyhow::anyhow!("failed to install rustls crypto provider"))?;
 
     let config = Config::read().await?;
     log::info!("Running with config {config:?}");

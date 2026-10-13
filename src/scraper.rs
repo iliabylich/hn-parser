@@ -1,5 +1,5 @@
+use crate::http_client::Client;
 use anyhow::{Context as _, Result, bail};
-use reqwest::Client;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
@@ -9,13 +9,9 @@ pub(crate) struct User {
 impl User {
     pub(crate) async fn get(client: &Client) -> Result<Self> {
         client
-            .get("https://hacker-news.firebaseio.com/v0/user/whoishiring.json?print=pretty")
-            .send()
+            .get_json("https://hacker-news.firebaseio.com/v0/user/whoishiring.json?print=pretty")
             .await
-            .context("failed to get user response")?
-            .json::<User>()
-            .await
-            .context("failed to parse user response")
+            .context("failed to get user")
     }
 
     pub(crate) async fn last_item(&self, client: &Client) -> Result<Item> {
@@ -44,22 +40,18 @@ pub(crate) struct Item {
 impl Item {
     pub(crate) async fn get(client: &Client, id: u32) -> Result<Self> {
         client
-            .get(format!(
-                "https://hacker-news.firebaseio.com/v0/item/{id}.json?print=pretty",
+            .get_json(&format!(
+                "https://hacker-news.firebaseio.com/v0/item/{id}.json?print=pretty"
             ))
-            .send()
             .await
-            .context("failed to get item")?
-            .json::<Item>()
-            .await
-            .context("failed to parse item response")
+            .with_context(|| format!("failed to get item {id}"))
     }
 
     pub(crate) async fn get_many(client: &Client, ids: &[u32]) -> Result<Vec<Self>> {
         async fn get_concurrently(client: &Client, ids: &[u32]) -> Result<Vec<Item>> {
             ids.iter()
                 .map(|id| Item::get(client, *id))
-                .collect::<futures::future::JoinAll<_>>()
+                .collect::<futures_util::future::JoinAll<_>>()
                 .await
                 .into_iter()
                 .collect::<Result<Vec<_>>>()

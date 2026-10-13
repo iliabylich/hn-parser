@@ -3,15 +3,10 @@ use askama::Template;
 
 macro_rules! timeago {
     ($timestamp:expr) => {{
-        use chrono::Utc;
-        use chrono::prelude::DateTime;
-        use std::time::{Duration, UNIX_EPOCH};
+        use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-        let moment = DateTime::<Utc>::from(
-            UNIX_EPOCH + Duration::from_secs($timestamp.try_into().unwrap_or(0)),
-        );
-        let now = Utc::now();
-        let delta = (now - moment).to_std().unwrap_or_default();
+        let moment = UNIX_EPOCH + Duration::from_secs($timestamp.try_into().unwrap_or(0));
+        let delta = SystemTime::now().duration_since(moment).unwrap_or_default();
 
         let mut formatter = timeago::Formatter::new();
         formatter.num_items(3);

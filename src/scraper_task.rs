@@ -1,9 +1,9 @@
 use crate::{
     config::Config,
+    http_client::Client,
     scraper::{Item, User},
 };
 use anyhow::{Context as _, Result};
-use reqwest::Client;
 use std::time::Duration;
 use tokio::{
     sync::mpsc::{Receiver, Sender},
