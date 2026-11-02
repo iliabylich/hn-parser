@@ -46,23 +46,3 @@ env_logger = { version = "0.11.8", default-features = false }
 opt-level = "z"
 lto = true
 
-[package.metadata.deb]
-assets = [
-  [
-    "target/release/hnparser",
-    "usr/bin/hnparser",
-    "755",
-  ],
-  [
-    "debian/hnparser.service",
-    "lib/systemd/system/hnparser.service",
-    "644",
-  ],
-]
-copyright = "2023, Ilya Bylich."
-depends = "$auto, systemd"
-extended-description = "HN parser"
-maintainer = "HN parser developer <ibylich@gmail.com>"
-maintainer-scripts = "debian/scripts"
-priority = "optional"
-section = "admin"

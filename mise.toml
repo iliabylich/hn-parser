@@ -1,29 +1,42 @@
-[task_config]
-shell = "bash -euo pipefail -c"
+monorepo_root = true
+
+[monorepo]
+config_roots = [".github"]
 
 [tools]
 node = "latest"
-"aqua:cargo-bins/cargo-binstall" = "latest"
-"cargo:cargo-deb" = "latest"
+cargo-binstall = "latest"
 
 [settings]
 cargo.binstall_quickinstall = true
+cargo.binstall_only = true
+
+[task_config]
+shell = "bash -euo pipefail -c"
 
 [tasks.dev]
 depends = ["cargo:watch", "tailwind:watch"]
 
 [tasks."cargo:watch"]
+hide = true
+tools = { "cargo:cargo-watch" = "latest" }
 run = "cargo watch -x run"
 
 [tasks."tailwind:watch"]
+hide = true
 run = "npx @tailwindcss/cli -i templates/index.css -o ./templates/output.css --watch"
 
 [tasks.release]
 run = """
 npm install
 npx @tailwindcss/cli -i templates/index.css -o ./templates/output.css --minify
-
-cargo build --target=x86_64-unknown-linux-musl --release
-strip target/x86_64-unknown-linux-musl/release/hnparser
-cargo-deb --deb-revision="$(date +%s)" --target=x86_64-unknown-linux-musl
+cargo build --release --target=x86_64-unknown-linux-musl
 """
+
+[tasks."cargo:outdated"]
+hide = true
+tools = { "cargo:cargo-outdated" = "latest" }
+run = "cargo outdated"
+
+[tasks.outdated]
+run = [{ task = "cargo:outdated" }, { task = "//.github:outdated" }]

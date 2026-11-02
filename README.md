@@ -2,18 +2,14 @@
 
 Installation:
 
+1. Download the `hnparser` binary from the latest release into `/usr/bin/hnparser`
+2. Download `hnparser.service` from the same release into `/lib/systemd/system/hnparser.service`
+3. Configure `/etc/hnparser.toml` (see `config.example.toml`)
+4. Enable and start the service:
+
 ```sh
-$ wget https://github.com/iliabylich/hn-parser/releases/download/latest/hnparser_0.1.0_amd64.deb
-$ dpkg -i hnparser_0.1.0_amd64.deb
-# configure `/etc/hnparser.json`
 $ systemctl enable hnparser
 $ systemctl start hnparser
-```
-
-To uninstall:
-
-```sh
-$ dpkg --purge hnparser
 ```
 
 To view logs:
